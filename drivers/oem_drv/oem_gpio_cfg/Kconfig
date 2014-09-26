@@ -1,0 +1,39 @@
+menu "oem gpio cfg drivers"
+
+config OEM_GPIO_CFG
+	tristate "oem gpio config"
+	default y
+	---help---
+	  oem gpio coutrol
+	  
+config S706_GPIO_CFG
+	tristate "s706 gpio config"
+	depends on OEM_GPIO_CFG
+	---help---
+	  s706 gpio coutrol
+
+config D105_GPIO_CFG
+	tristate "D105 gpio config"
+	depends on OEM_GPIO_CFG
+	---help---
+	  D105 gpio coutrol
+
+config S502_GPIO_CFG
+	tristate "s502 gpio config"
+	depends on OEM_GPIO_CFG
+	---help---
+	  s502 gpio coutrol
+
+config S106_GPIO_CFG
+	tristate "s106 gpio config"
+	depends on OEM_GPIO_CFG
+	---help---
+	  s106 gpio coutrol
+	  
+config D720_GPIO_CFG
+	tristate "d720 gpio config"
+	depends on OEM_GPIO_CFG
+	---help---
+	  d720  gpio coutrol
+
+endmenu

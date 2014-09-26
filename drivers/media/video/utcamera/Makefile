@@ -1,0 +1,2 @@
+obj-$(CONFIG_VIDEO_BF3A20)		+= bf3a20.o
+obj-$(CONFIG_VIDEO_OV5645)		+= ov5645.o

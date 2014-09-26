@@ -1,0 +1,115 @@
+menu "oem_drv customized drivers"
+source drivers/oem_drv/nfc/Kconfig
+source drivers/oem_drv/touchscreen/Kconfig
+source drivers/oem_drv/mtk_wcn_combo/Kconfig
+source "drivers/oem_drv/oem_gpio_cfg/Kconfig"
+
+config QN8027_FM	
+    bool "QN8027 FM Radio Transmitter Support"
+    default n	
+    ---help---	  
+      If you say Y here, you can use QN8027  
+
+config OEM_BTN	
+    bool "Oem Button Support"
+    default y	
+    ---help---	  
+      If you say Y here, you can use oem_btn  
+
+#add by modify for RDA BT module start
+config BT_RDA_587X_MODULE_SUPPORT	
+    bool "RDA Module 587X Support"
+    depends on BT_HCIUART
+    default n	
+    ---help---	  
+      If you say Y here, you can use RDA Module 587X  
+#add end
+
+config URBETTER_DOCK_KEYBOARD
+	tristate "URBETTER dock keyboard"
+	default y
+	---help---
+		Say Y here if you want to support dock keyboard!
+		
+config URBETTER_SIM_DETECT
+	tristate "URBETTER Sim Detect"
+	default y
+	---help---
+		Say Y here if you want to support dock keyboard!
+
+config URBETTER_POWER_GPIO
+	tristate "urbest Power GPIOs"
+	default y
+	---help---
+	  Say Y here if you want to support urbest power GPIO.
+
+menu "oem_drv button driver"
+	  
+config URBETTER_MID_BUTTON
+	tristate "urbest general button driver"
+	default n
+	---help---
+	  Say Y here if you want to support urbest MID button driver.
+
+endmenu
+
+config UT_LIGHTSENSOR_BH1721
+	bool "UT light sensor  bh1721"
+	default y
+	---help---
+	  Say Y here if you want to support ut lightsensor driver.
+
+config URBETTER_BATTERY
+	tristate "urbest Battery"
+	default n
+	---help---
+	  Say Y here if you want to support urbest battery driver.
+
+config URBETTER_MOTOR_SHAKE
+	bool "urbest Motor Shake for smdk4x12"
+	default y
+	---help---
+	  Say Y here if you want to support urbest motor driver.
+
+config URBETTER_GSENEOR_MMA7660
+	tristate "urbest 3-Axis G sensor"
+	default n
+	---help---
+	  Say Y here if you want to support urbest 3-Axis G sensor.
+
+choice
+depends on URBETTER_GSENEOR_MMA7660
+prompt "Select direction(board)"
+default MMA7660_UT7GM
+
+config MMA7660_UT7GM
+	bool "UT7GM direction"
+	---help---
+	  select the sensor direction for UT7GM
+
+config MMA7660_UT10GM
+	bool "UT10GM direction"
+	---help---
+	  select the sensor direction for UT10GM
+
+config MMA7660_DEFAULT
+	bool "default direction"
+	---help---
+	  select the sensor direction for default
+
+endchoice	
+
+	  
+config URBETTER_REGWATCH
+	tristate "urbest register watcher(read/write physical register for debug)"
+	default y
+	---help---
+	  Say Y here if you want to support urbest register watcher(read/write physical register for debug).
+
+config URBETTER_DISPLAY_CONTROLLER
+	tristate "urbest display controller(Gamma/Hue/Color gain)"
+	default y
+	---help---
+	  Say Y here if you want to support urbest display controller(Gamma/Hue/Color gain).
+
+endmenu

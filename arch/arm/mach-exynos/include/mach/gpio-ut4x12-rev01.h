@@ -1,0 +1,172 @@
+/* linux/arch/arm/mach-exynos/include/mach/gpio-ut4x12.h
+ *
+ * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
+ *		http://www.samsung.com
+ *
+ * EXYNOS4 - MIDAS GPIO lib
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+*/
+
+#ifndef __MACH_GPIO_UT4X12_REV01_H
+#define __MACH_GPIO_UT4X12_REV01_H __FILE__
+
+#include <mach/gpio.h>
+
+
+extern void ut4x12_config_gpio_table(void);
+extern void ut4x12_config_sleep_gpio_table(void);
+
+
+#define IRQ_PMU_INT				IRQ_EINT(0)
+#define IRQ_ON_OUT				IRQ_EINT(1)
+#define IRQ_DC_IN_DET			IRQ_EINT(2)
+#define IRQ_RESERVE				IRQ_EINT(3)
+#define IRQ_CTP_INT				IRQ_EINT(4)
+#define IRQ_SCAN_BUZ				IRQ_EINT(5)
+#define IRQ_TPEN_INT				IRQ_EINT(5)	//ericli add 2013-09-27
+#define IRQ_SCAN_BUZ_INT				IRQ_EINT(6)
+#define IRQ_RFID_EN				IRQ_EINT(7)
+#define IRQ_RESERVE_3				IRQ_EINT(8)
+#define IRQ_NFC_INT				IRQ_EINT(9)
+#define IRQ_BT_INT				IRQ_EINT(10)
+#define IRQ_3G_MIC_SW			IRQ_EINT(11)
+#define IRQ_WIFI_WUP			IRQ_EINT(12)
+#define IRQ_WIFI_INT			IRQ_EINT(12)
+
+#define IRQ_RESERVE_6				IRQ_EINT(13)
+#define IRQ_RESERVE_7				IRQ_EINT(14)
+#define IRQ_RESERVE_8				IRQ_EINT(15)
+#define IRQ_KP_VOLUMEUP			IRQ_EINT(16)
+#define IRQ_KP_VOLUMEDOWN			IRQ_EINT(17)
+#define IRQ_PHONE_JACK_IN		IRQ_EINT(18)
+#define IRQ_HUB_INT				IRQ_EINT(19)
+#define IRQ_KEY_HOME				IRQ_EINT(20)
+#define IRQ_3G_WUP				IRQ_EINT(21)
+/* DU by Albert_lee 2014-04-02 begin */
+#define IRQ_KEY_MENU			IRQ_EINT(21)
+ /*Albert_lee 2014-04-02 end*/
+#define IRQ_KEY_SHUTTER				IRQ_EINT(22)   // EXYNOS4_GPX2(6)
+#define IRQ_CHRG_DET			IRQ_EINT(23)
+#define IRQ_SENSOR_INT			IRQ_EINT(24)
+#define IRQ_SENSOR_INT2		IRQ_EINT(25)
+#define IRQ_SIM_PLUG				IRQ_EINT(26)
+#define IRQ_GYRO_INT			IRQ_EINT(27)
+#define IRQ_RESERVE_12				IRQ_EINT(28)
+#define IRQ_SIM_DET				IRQ_EINT(29)
+#define IRQ_HDMI_CEC			IRQ_EINT(30)
+#define IRQ_HDMI_HPD			IRQ_EINT(31)
+
+
+#define GPIO_PMU_INT			EXYNOS4_GPX0(0)
+#define GPIO_ON_OUT			EXYNOS4_GPX0(1)
+#define GPIO_DC_IN_DET			EXYNOS4_GPX0(2)
+#define GPIO_RESERVE			EXYNOS4_GPX0(3)
+#define GPIO_CTP_INT			EXYNOS4_GPX0(4)
+#define GPIO_SCAN_EN				EXYNOS4_GPX0(5)
+#define GPIO_TPEN_INT			EXYNOS4_GPX0(5)		//ericli add 2013-09-27
+#define GPIO_SCAN_BUZ				EXYNOS4_GPX0(6)
+#define GPIO_RFID_EN				EXYNOS4_GPX0(7)
+#define GPIO_RESERVE_3				EXYNOS4_GPX1(0)
+//#define GPIO_NFC_INT				EXYNOS4_GPX1(1)
+#define GPIO_BT_INT				EXYNOS4_GPX1(2)
+#define GPIO_3G_MIC_SW			EXYNOS4_GPX1(3)
+#define GPIO_WIFI_WUP			EXYNOS4_GPX1(4)
+#define GPIO_WIFI_INT			EXYNOS4_GPX1(4)
+#define GPIO_RESERVE_6				EXYNOS4_GPX1(5)
+#define GPIO_RESERVE_7				EXYNOS4_GPX1(6)
+#define GPIO_RESERVE_8				EXYNOS4_GPX1(7)
+#define GPIO_KP_VOLUMEUP			EXYNOS4_GPX2(0)
+#define GPIO_KP_VOLUMEDOWN			EXYNOS4_GPX2(1)
+#define GPIO_PHONE_JACK_IN		EXYNOS4_GPX2(2)
+#define GPIO_USB_HUB_INT			EXYNOS4_GPX2(3)
+#define GPIO_KEY_HOME				EXYNOS4_GPX2(4)
+#define GPIO_3G_WUP			EXYNOS4_GPX2(5)
+/* DU by Albert_lee 2014-04-02 begin */
+#define GPIO_KEY_MENU			EXYNOS4_GPX2(5)
+ /*Albert_lee 2014-04-02 end*/
+#define GPIO_KEY_SHUTTER			EXYNOS4_GPX2(6)   // EXYNOS4_GPX2(6)
+#define GPIO_CHRG_DET			EXYNOS4_GPX2(7)
+#define GPIO_SENSOR_INT		EXYNOS4_GPX3(0)
+#define GPIO_SENSOR_INT2		EXYNOS4_GPX3(1)
+#define GPIO_SIM_PLUG			EXYNOS4_GPX3(2)
+#define GPIO_GYRO_INT			EXYNOS4_GPX3(3)
+#define GPIO_RESERVE_12			EXYNOS4_GPX3(4)
+#define GPIO_SIM_DET			EXYNOS4_GPX3(5)
+#define GPIO_HDMI_CEC			EXYNOS4_GPX3(6)
+#define GPIO_HDMI_HPD			EXYNOS4_GPX3(7)
+
+#define GPIO_CTP_RST			EXYNOS4212_GPM3(4)
+
+// not EINT
+#define IRQ_BGF_INF		IRQ_BT_INT	
+
+#define BT_LDO_PIN EXYNOS4_GPL0(3)
+#define BT_HOST_WAKE	EXYNOS4_GPL0(4)
+
+#define BT_POWER_PIN EXYNOS4212_GPM3(1)
+#define BT_RST_PIN EXYNOS4212_GPM3(1)
+
+#define GPIO_COMBO_RST	EXYNOS4_GPL1(0)
+#define GPIO_COMBO_PMUEN	EXYNOS4_GPL1(1)
+// bcm combo
+#define GPIO_WIFI_REG_ON	EXYNOS4_GPL1(1)
+#define GPIO_COMBO_LDO EXYNOS4212_GPM3(1)
+//#define GPIO_WIFI_REG_ON	GPIO_COMBO_PMUEN
+//#define GPIO_COMBO_LDO BT_POWER_PIN
+
+#define GPIO_WLAN_EN GPIO_WIFI_REG_ON
+#define GPIO_WLAN_EN_AF 1
+#define GPIO_WLAN_HOST_WAKE GPIO_WIFI_WUP
+#define GPIO_WLAN_HOST_WAKE_AF 0xF
+
+#define GPIO_WLAN_SDIO_CLK	EXYNOS4_GPK3(0)
+#define GPIO_WLAN_SDIO_CLK_AF	2
+#define GPIO_WLAN_SDIO_CMD	EXYNOS4_GPK3(1)
+#define GPIO_WLAN_SDIO_CMD_AF	2
+#define GPIO_WLAN_SDIO_D0	EXYNOS4_GPK3(3)
+#define GPIO_WLAN_SDIO_D0_AF	2
+#define GPIO_WLAN_SDIO_D1	EXYNOS4_GPK3(4)
+#define GPIO_WLAN_SDIO_D1_AF	2
+#define GPIO_WLAN_SDIO_D2	EXYNOS4_GPK3(5)
+#define GPIO_WLAN_SDIO_D2_AF	2
+#define GPIO_WLAN_SDIO_D3	EXYNOS4_GPK3(6)
+#define GPIO_WLAN_SDIO_D3_AF	2
+
+#define GPIO_BT_RXD		EXYNOS4_GPA0(0)
+#define GPIO_BT_RXD_AF		2
+#define GPIO_BT_TXD		EXYNOS4_GPA0(1)
+#define GPIO_BT_TXD_AF		2
+#define GPIO_BT_CTS		EXYNOS4_GPA0(2)
+#define GPIO_BT_CTS_AF		2
+#define GPIO_BT_RTS		EXYNOS4_GPA0(3)
+#define GPIO_BT_RTS_AF		2
+
+#define GPIO_BT_UART_RXD	GPIO_BT_RXD
+#define GPIO_BT_UART_TXD	GPIO_BT_TXD
+#define GPIO_BT_UART_CTS	GPIO_BT_CTS
+#define GPIO_BT_UART_RTS	GPIO_BT_RTS
+#define GPIO_BTREG_ON	BT_LDO_PIN
+
+#define GPIO_BT_HOST_WAKE		GPIO_BT_INT
+#define GPIO_BT_WAKE BT_HOST_WAKE
+#define GPIO_USB_HUB_RST EXYNOS4212_GPM3(2)
+#define GPIO_USB_HUB_CONNECT EXYNOS4212_GPM3(3)
+#define GPIO_USB_HUB2_RESET EXYNOS4_GPL2(2)
+
+//#define POWER_LCD18_EN EXYNOS4212_GPM2(0)
+#define GPIO_LCD18_EN EXYNOS4212_GPM2(0)
+
+// GSM module
+
+#define GPIO_GSM_WAKE_IN		EXYNOS4212_GPM1(2)
+#define GPIO_GSM_POWER_ON_OFF		EXYNOS4212_GPM1(3)
+#define GPIO_GSM_POWER_EN		EXYNOS4212_GPM1(5)
+
+#define GPIO_MOTOR_PW            EXYNOS4212_GPM1(6)
+
+
+#endif
+

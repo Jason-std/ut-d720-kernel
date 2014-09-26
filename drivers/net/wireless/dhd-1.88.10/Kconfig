@@ -1,0 +1,74 @@
+config DHD_1_88_10
+	tristate "Broadcom 4329/30 DHD_1_88_10 wireless cards support"
+	depends on MMC
+	---help---
+	  This module adds support for wireless adapters based on
+	  Broadcom 4329/30 chipset.
+
+	  This driver uses the kernel's wireless extensions subsystem.
+
+	  If you choose to build a module, it'll be called dhd. Say M if
+	  unsure.
+
+config BCMDHD_FW_PATH
+	depends on DHD_1_88_10
+	string "Firmware path"
+	default "/system/etc/firmware/fw_bcmdhd.bin"
+	---help---
+	  Path to the firmware file.
+
+config BCMDHD_NVRAM_PATH
+	depends on DHD_1_88_10
+	string "NVRAM path"
+	default "/system/etc/wifi/bcmdhd.cal"
+	---help---
+	  Path to the calibration file.
+
+config BCMDHD_CONFIG_PATH
+	depends on DHD_1_88_10
+	string "Config path"
+	default "/system/etc/firmware/config.txt"
+	---help---
+	  Path to the driver configuration file.
+
+config BCMDHD_WEXT
+	bool "Enable WEXT support"
+	depends on DHD_1_88_10 && CFG80211 = n
+	select WIRELESS_EXT
+	select WEXT_PRIV
+	help
+	  Enables WEXT support
+
+##choice
+##	depends on DHD_1_88_10
+##	prompt "Interrupt type"
+##	---help---
+##	  Interrupt type
+##config BCMDHD_OOB
+##	depends on DHD_1_88_10
+##	bool "Out-of-Band Interrupt"
+##	default y
+##	---help---
+##	  Interrupt from WL_HOST_WAKE.
+##config BCMDHD_SDIO_IRQ
+##	depends on  DHD_1_88_10
+##	bool "In-Band Interrupt"
+##	---help---
+##	  Interrupt from SDIO DAT[1]
+##	  
+##endchoice
+
+
+config DHD_USE_STATIC_BUF
+	bool "Enable memory preallocation"
+	depends on DHD_1_88_10
+	default n
+	---help---
+	  Use memory preallocated in platform
+
+config DHD_USE_SCHED_SCAN
+	bool "Use CFG80211 sched scan"
+	depends on DHD_1_88_10 && CFG80211
+	default n
+	---help---
+	  Use CFG80211 sched scan

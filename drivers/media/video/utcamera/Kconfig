@@ -1,0 +1,13 @@
+   
+config VIDEO_BF3A20
+  tristate "Bf3a20 Mipi Camera Sensor"
+  depends on SOC_CAMERA && I2C
+  ---help---
+    This driver supports Bf3a20 Soc camera module
+
+config VIDEO_OV5645
+  tristate "OV5645 Mipi Camera Sensor"
+  depends on SOC_CAMERA && I2C
+  ---help---
+    This driver supports OV5645 Soc camera module
+

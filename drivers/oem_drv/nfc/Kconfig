@@ -1,0 +1,32 @@
+#
+# pn544 devices
+#
+
+menuconfig PN544_DEVICES
+	bool "pn544 devices"
+	default y
+	---help---
+	  Say Y here to get to see options for device drivers from various
+	  different categories. This option alone does not add any kernel code.
+
+	  If you say N, all options in this submenu will be skipped and disabled.
+
+if PN544_DEVICES
+
+config PN544
+	tristate "NXP PN544 NFC Controller Driver"
+	depends on I2C
+	default n
+	help
+	  NXP PN544 Near Field Communication controller support.
+
+
+endif # PN544_DEVICES
+
+
+config BCM2079X_I2C
+    tristate "BCM2079X_I2C nfc support"
+    depends on I2C
+    default n
+    help
+      If you say yes here you get support for BCM2079x_I2C support
