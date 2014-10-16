@@ -1635,13 +1635,13 @@ static int axp_battery_probe(struct platform_device *pdev)
   if(!strcmp(g_selected_utmodel,"d721")){
   	printk("%s:modified d721 chgcur\n");
   	/*开机充电电流，uA*/
-	static unsigned long int STACHGCUR	=		800*1000;
+	STACHGCUR	=		800*1000;
 	/*关屏充电电流，uA*/
-	static unsigned long int EARCHGCUR	=		800*1000;
+	EARCHGCUR	=		800*1000;
 	/*休眠充电电流，uA*/
-	static unsigned long int SUSCHGCUR	=		1200*1000;
+	SUSCHGCUR	=		1200*1000;
 	/*关机充电电流，uA*/
-	static unsigned long int CLSCHGCUR	=		1200*1000;
+	CLSCHGCUR	=		1200*1000;
   }
 
   powerkeydev = input_allocate_device();

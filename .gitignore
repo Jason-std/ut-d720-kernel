@@ -79,6 +79,12 @@ lib/gen_crc32table
 usr/gen_init_cpio
 usr/initramfs_data.cpio
 
+scripts/basic/fixdep
+scripts/kallsyms
+scripts/mod/elfconfig.h
+scripts/mod/mk_elfconfig
+scripts/mod/modpost
+
 
 # stgit generated dirs
 patches-*
