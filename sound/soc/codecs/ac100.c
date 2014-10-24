@@ -2956,6 +2956,7 @@ static int sndvir_audio_umute(struct snd_soc_dai *codec_dai, int mute)
 				break;
 			}
 		} else {
+			write_power_item_value(POWER_SPK_EN,0);
 		}
 
 	} else if (current_substream == SNDRV_PCM_STREAM_CAPTURE) {

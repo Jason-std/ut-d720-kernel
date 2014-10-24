@@ -85,6 +85,12 @@ scripts/mod/elfconfig.h
 scripts/mod/mk_elfconfig
 scripts/mod/modpost
 
+scripts/kconfig/conf
+*.zconf.c
+scripts/kconfig/mconf
+*.hash.c
+*.tab.c
+
 
 # stgit generated dirs
 patches-*
