@@ -124,9 +124,9 @@ config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
 	select CPU_FREQ_GOV_PEGASUSQ
 
 
-config CPU_FREQ_DEFAULT_GOV_HYPER
-	bool "hyper"
-	select CPU_FREQ_GOV_HYPER
+#config CPU_FREQ_DEFAULT_GOV_HYPER
+#	bool "hyper"
+#	select CPU_FREQ_GOV_HYPER
 	
 
 endchoice
