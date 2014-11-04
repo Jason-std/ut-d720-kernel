@@ -319,7 +319,7 @@ static struct act8847_regulator_subdev ut4x12_act8847_regulators[] = {
 //	{ ACT8847_LDO12,   &act8847_ldo12_data },
 //	{ ACT8847_LDO13,   &act8847_ldo13_data },
 #endif
-	{ ACT8847_DCDC_DUMMY, &act8847_dummy_nomif_data  },
+	{ ACT8847_DCDC_DUMMY, &act8847_dummy_data  },
 };
 
 
@@ -339,7 +339,7 @@ static struct act8847_regulator_subdev ut4x12_act8847_regulators_class2[] = {
 //	{ ACT8847_LDO12,   &act8847_ldo12_data },
 //	{ ACT8847_LDO13,   &act8847_ldo13_data },
 #endif
-	{ ACT8847_DCDC_DUMMY, &act8847_dummy_data },
+	{ ACT8847_DCDC_DUMMY, &act8847_dummy_nomif_data  },
 };
 
 
