@@ -1144,7 +1144,7 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
                 dev_err(&cw_bat->client->dev, "fail to allocate memory\n");
                 return -ENOMEM;
         }
-	printk("11111111\n");
+
         i2c_set_clientdata(client, cw_bat);
         cw_bat->plat_data = client->dev.platform_data;
         ret = cw_bat_gpio_init(cw_bat);
@@ -1152,7 +1152,7 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
                 dev_err(&cw_bat->client->dev, "cw_bat_gpio_init error\n");
                 return ret;
         }
-	printk("22222222\n");
+
         cw_bat->client = client;
 
         ret = cw_init(cw_bat);

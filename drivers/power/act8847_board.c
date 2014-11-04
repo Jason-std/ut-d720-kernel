@@ -28,6 +28,9 @@
 static struct regulator_consumer_supply act8847_buck1_consumer =
 	REGULATOR_SUPPLY("vdd_mem", NULL);
 
+static struct regulator_consumer_supply act8847_buck1_mif_consumer =
+	REGULATOR_SUPPLY("vdd_mif", NULL);
+
 static struct regulator_consumer_supply act8847_buck2_consumer =
 	REGULATOR_SUPPLY("vdd_arm", NULL);
 
@@ -57,8 +60,9 @@ static struct regulator_consumer_supply act8847_ldo10_consumer =
 static struct regulator_consumer_supply act8847_ldo11_consumer =
 	REGULATOR_SUPPLY("vdd_10", NULL);
 #endif
-static struct regulator_consumer_supply act8847_dummy_consumer =
-	REGULATOR_SUPPLY("vdd_mif", NULL);
+
+//static struct regulator_consumer_supply act8847_dummy_consumer =
+//	REGULATOR_SUPPLY("vdd_mif", NULL);
 
 static struct regulator_consumer_supply act8847_dummy_consumers[] = {
 	REGULATOR_SUPPLY("vdd_mif", NULL),		//4412 bus mif
@@ -70,18 +74,19 @@ static struct regulator_consumer_supply act8847_dummy_consumers[] = {
 	REGULATOR_SUPPLY("vdd10_mipi", NULL),	//VDD 1.8V and MIPI CSI PLL supply
 	REGULATOR_SUPPLY("vdd_tmu", NULL),
 	REGULATOR_SUPPLY("vdd18_mipi", NULL),
-
-
-#if 0 //wm8994 power
-	REGULATOR_SUPPLY("DBVDD", NULL),		//wm8994
-	REGULATOR_SUPPLY("DCVDD", NULL),		//wm8994
-	REGULATOR_SUPPLY("AVDD1", NULL),		//wm8994
-	REGULATOR_SUPPLY("AVDD2", NULL),		//wm8994
-	REGULATOR_SUPPLY("CPVDD", NULL),		//wm8994
-	REGULATOR_SUPPLY("SPKVDD1", NULL),		//wm8994
-	REGULATOR_SUPPLY("SPKVDD2", NULL),		//wm8994
-#endif
 };
+
+static struct regulator_consumer_supply act8847_dummy_nomif_consumers[] = {
+	REGULATOR_SUPPLY("vdd", NULL),			//hdmi
+	REGULATOR_SUPPLY("vdd_osc", NULL),		//hdmi
+	REGULATOR_SUPPLY("vusb_d", NULL),		//digital USB supply, 1.2V
+	REGULATOR_SUPPLY("vusb_a", NULL),		//analog USB supply, 1.1V
+	REGULATOR_SUPPLY("vdd8_mipi", NULL),	//1.0V (smdk4x12) MIPI CSI suppply
+	REGULATOR_SUPPLY("vdd10_mipi", NULL),	//VDD 1.8V and MIPI CSI PLL supply
+	REGULATOR_SUPPLY("vdd_tmu", NULL),
+	REGULATOR_SUPPLY("vdd18_mipi", NULL),
+};
+
 
 static struct regulator_init_data act8847_buck1_data = {
 	.constraints	= {
@@ -98,6 +103,20 @@ static struct regulator_init_data act8847_buck1_data = {
 	},
 	.num_consumer_supplies	= 1,
 	.consumer_supplies	= &act8847_buck1_consumer,
+};
+
+static struct regulator_init_data act8847_buck1_mif_data = {
+	.constraints	= {
+		.name		= "vdd_mif range",
+		.min_uV = 800000,
+		.max_uV		= 1500000,
+		.always_on = 1,
+		.boot_on = 1,
+		.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE,
+		
+	},
+	.num_consumer_supplies	= 1,
+	.consumer_supplies	= &act8847_buck1_mif_consumer,
 };
 
 static struct regulator_init_data act8847_buck2_data = {
@@ -156,13 +175,24 @@ static struct regulator_init_data act8847_dummy_data = {
 			.disabled = 1,
 		},
 	},
-#if 1
 	.num_consumer_supplies	= ARRAY_SIZE(act8847_dummy_consumers),
 	.consumer_supplies	= act8847_dummy_consumers,
-#else
-	.num_consumer_supplies	= 1,
-	.consumer_supplies	= &act8847_dummy_consumer,
-#endif
+};
+
+static struct regulator_init_data act8847_dummy_nomif_data = {
+	.constraints	= {
+		.name		= "vdd dummy",
+		.min_uV = 850000,
+		.max_uV = 1200000,
+		.boot_on = 1,
+		.valid_ops_mask = REGULATOR_CHANGE_VOLTAGE |
+				  REGULATOR_CHANGE_STATUS,
+		.state_mem = {
+			.disabled = 1,
+		},
+	},
+	.num_consumer_supplies	= ARRAY_SIZE(act8847_dummy_nomif_consumers),
+	.consumer_supplies	= act8847_dummy_nomif_consumers,
 };
 
 
@@ -199,7 +229,7 @@ static struct regulator_init_data act8847_ldo6_data = {
 	.consumer_supplies	= &act8847_ldo6_consumer,
 };
 
-#if 1
+#if 0
 static struct regulator_init_data act8847_ldo8_data = {
 	.constraints	= {
 		.name		= "VDD_18",
@@ -254,7 +284,7 @@ static struct regulator_init_data act8847_ldo10_data = {
 	.consumer_supplies	= &act8847_ldo10_consumer,
 };
 
-#if 1
+#if 0
 static struct regulator_init_data act8847_ldo11_data = {
 	.constraints	= {
 		.name		= "VDD_10",
@@ -289,8 +319,29 @@ static struct act8847_regulator_subdev ut4x12_act8847_regulators[] = {
 //	{ ACT8847_LDO12,   &act8847_ldo12_data },
 //	{ ACT8847_LDO13,   &act8847_ldo13_data },
 #endif
+	{ ACT8847_DCDC_DUMMY, &act8847_dummy_nomif_data  },
+};
+
+
+static struct act8847_regulator_subdev ut4x12_act8847_regulators_class2[] = {
+	{ ACT8847_DCDC1, &act8847_buck1_mif_data },
+	{ ACT8847_DCDC2, &act8847_buck2_data },
+	{ ACT8847_DCDC3, &act8847_buck3_data },
+	{ ACT8847_DCDC4, &act8847_buck4_data },
+	{ ACT8847_LDO5,   &act8847_ldo5_data },
+	{ ACT8847_LDO6,   &act8847_ldo6_data },
+#if 1
+//	{ ACT8847_LDO7,   &act8847_ldo7_data },
+//	{ ACT8847_LDO8,   &act8847_ldo8_data },
+//	{ ACT8847_LDO9,   &act8847_ldo9_data },
+	{ ACT8847_LDO10,   &act8847_ldo10_data },
+//	{ ACT8847_LDO11,   &act8847_ldo11_data },
+//	{ ACT8847_LDO12,   &act8847_ldo12_data },
+//	{ ACT8847_LDO13,   &act8847_ldo13_data },
+#endif
 	{ ACT8847_DCDC_DUMMY, &act8847_dummy_data },
 };
+
 
 struct act8847_platform_data act8847_data = {
 	.num_regulators = ARRAY_SIZE(ut4x12_act8847_regulators),
@@ -307,6 +358,22 @@ static struct i2c_board_info act_mfd_i2c_board_info[] __initdata = {
 #endif
 };
 
+
+struct act8847_platform_data act8847_data_class2 = {
+	.num_regulators = ARRAY_SIZE(ut4x12_act8847_regulators_class2),
+	.regulators     = ut4x12_act8847_regulators_class2,
+};
+
+
+static struct i2c_board_info act_mfd_i2c_board_info_class2[] __initdata = {
+#ifdef CONFIG_REGULATOR_ACT8847
+	{
+		I2C_BOARD_INFO("act8847", 0x5A),
+		.platform_data = &act8847_data_class2,
+	},
+#endif
+};
+
 #endif
 
 
@@ -319,7 +386,11 @@ static int __init act8847_board_init(void)
 	printk("%s();  start !\n", __func__);
 
 	if (is_act_pmu) {
-		ret =  i2c_register_board_info(ACT_I2CBUS, act_mfd_i2c_board_info, ARRAY_SIZE(act_mfd_i2c_board_info));
+		if (is_act_pmu_class2) {
+			ret =  i2c_register_board_info(ACT_I2CBUS, act_mfd_i2c_board_info_class2, ARRAY_SIZE(act_mfd_i2c_board_info_class2));
+		} else {
+			ret =  i2c_register_board_info(ACT_I2CBUS, act_mfd_i2c_board_info, ARRAY_SIZE(act_mfd_i2c_board_info));
+		}
 	}
 	printk("%s(); ret=%d -\n", __func__, ret);
 

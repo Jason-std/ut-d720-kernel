@@ -21,7 +21,6 @@
 #include <plat/gpio-cfg.h>
 #include <linux/gpio.h>
 #include <linux/slab.h>
-// TODO
 #include <linux/delay.h>
 
 //#define ACT8847_DEBUG
@@ -800,15 +799,16 @@ static int __devinit act8847_i2c_probe(struct i2c_client *i2c,
 	//prepare for vset2
 	act8847_write(0x21, 0x1a); //vdd_arm 1.3V
 	act8847_write(0x31, 0x10); //vdd_3D 1.0V
-	set_ddr_volt();
+
+	if (!is_act_pmu_class2) {
+		set_ddr_volt();
+	}
 	mdelay(2);
 	
 	act_dbg("Raymanfeng C1=0x%02x\n", act8847_read(0xC1));
 	act_dbg("Raymanfeng C2=0x%02x\n", act8847_read(0xC2));
 	act_dbg("Raymanfeng C3=0x%02x\n", act8847_read(0xC3));
 
-
-	
 	//pull GPM3_5 up for using vset2, vset1 is used for reset case
 	{
 		int err;
