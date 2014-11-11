@@ -30,6 +30,8 @@
 
 #include <linux/sched.h>
 
+#include <linux/regulator/consumer.h>
+
 #define CONFIG_GPIO_DEBUG
 
 #undef P_GPIO_DEBUG
@@ -117,11 +119,11 @@ static const char * s_node_names[POWER_ITEM_MAX] =
 	"power_3d_en",
 #endif
 	"power_int_en",
-	"power_cam_en",
+//	"power_cam_en",
 	/* 5*/
-	"power_cama_pd", //camera A power down
-	"power_camb_pd", //camera B power down
-	"power_camb_rst",
+//	"power_cama_pd", //camera A power down
+//	"power_camb_pd", //camera B power down
+//	"power_camb_rst",
 #if 0
 	"power_bt_en",
 	"power_bt_rst",
@@ -161,6 +163,18 @@ static const char * s_node_names[POWER_ITEM_MAX] =
 	"power_scan_buz",
 	"power_rfid_en",
 
+	"power_fcam_28v",   // front camera
+	"power_fcam_18v",
+	"power_fcam_pd",
+	"power_fcam_rst",
+
+	"power_bcam_28v",  // back camera
+	"power_bcam_18v",
+	"power_bcam_pd",
+	"power_bcam_rst",
+
+	"power_cam_af",
+
 };
 
 struct power_gpio_node
@@ -187,7 +201,7 @@ static int delay_1_ms(struct power_gpio_node node,int on)
 }
 
 
-static struct power_gpio_node s_gpio_node[] =
+static struct power_gpio_node s_gpio_node[POWER_ITEM_MAX+1] =
 {
 
 	{POWER_5V_EN,			EXYNOS4_GPK1(1), 1, 1, NULL},
@@ -204,10 +218,10 @@ static struct power_gpio_node s_gpio_node[] =
 	{POWER_3D_EN,			EXYNOS4212_GPM3(6), 0, 1, NULL}, // low is  default volt, high is another volt (PNU cc)
 */
 	{POWER_INT_EN,			EXYNOS4212_GPM3(7), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
-	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
-	{POWER_CAMA_PD,		EXYNOS4_GPL0(0), 0, 1, NULL},
-	{POWER_CAMB_PD,		EXYNOS4_GPL0(1), 0, 1, NULL},
-	{POWER_CAM_RST,		EXYNOS4212_GPJ1(4), 0, 1, NULL},
+//	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
+//	{POWER_CAMA_PD,		EXYNOS4_GPL0(0), 0, 1, NULL},
+//	{POWER_CAMB_PD,		EXYNOS4_GPL0(1), 0, 1, NULL},
+//	{POWER_CAM_RST,		EXYNOS4212_GPJ1(4), 0, 1, NULL},
 /*
 	{POWER_BT_EN,			EXYNOS4212_GPM3(1), 1, 1, NULL},
 	{POWER_BT_RST,			EXYNOS4_GPL0(2), 0, 1, NULL},
@@ -263,9 +277,9 @@ const static struct power_gpio_node s_gpio_node_vserion1[] =
 	{POWER_3D_EN,			EXYNOS4212_GPM3(6), 0, 1, NULL}, // low is  default volt, high is another volt (PNU cc)
 #endif
 	{POWER_INT_EN,			EXYNOS4212_GPM3(7), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
-	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
-	{POWER_CAMA_PD,		EXYNOS4_GPL0(0), 0, 1, NULL},
-	{POWER_CAMB_PD,		EXYNOS4_GPL0(1), 0, 1, NULL},
+//	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
+//	{POWER_CAMA_PD,		EXYNOS4_GPL0(0), 0, 1, NULL},
+//	{POWER_CAMB_PD,		EXYNOS4_GPL0(1), 0, 1, NULL},
 /*
 	{POWER_BT_EN,			EXYNOS4212_GPM3(1), 1, 1, NULL},
 	{POWER_BT_RST,			EXYNOS4_GPL0(2), 0, 1, NULL},
@@ -314,10 +328,10 @@ static struct power_gpio_node s_gpio_node_d721[] =
 	{POWER_3D_EN,			EXYNOS4212_GPM3(6), 0, 1, NULL}, // low is  default volt, high is another volt (PNU cc)
 */
 	{POWER_INT_EN,			EXYNOS4212_GPM3(7), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
-	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
+/*	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
 	{POWER_CAMA_PD,		EXYNOS4_GPL0(0), 0, 1, NULL},
 	{POWER_CAMB_PD,		EXYNOS4_GPL0(1), 0, 1, NULL},
-	{POWER_CAM_RST,		EXYNOS4212_GPJ1(4), 0, 1, NULL},
+	{POWER_CAM_RST,		EXYNOS4212_GPJ1(4), 0, 1, NULL}, */
 /*
 	{POWER_BT_EN,			EXYNOS4212_GPM3(1), 1, 1, NULL},
 	{POWER_BT_RST,			EXYNOS4_GPL0(2), 0, 1, NULL},
@@ -362,6 +376,68 @@ static struct power_gpio_node s_gpio_node_d721[] =
 	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
 };
 
+static struct power_gpio_node s_gpio_node_s106[] =
+{
+
+	{POWER_5V_EN,			EXYNOS4_GPK1(1), 1, 1, NULL},
+/* added by Albert_lee 2013-09-20 begin */
+
+/* OEM FOR D816 by Albert_lee 2014-04-23 begin */
+	{POWER_5V_EN,			EXYNOS4_GPK1(2), 1, 1, NULL},
+ /*Albert_lee 2014-04-23 end*/
+//	{POWER_5V_EN,			EXYNOS4_GPL2(4), 1, 1, NULL},
+
+ /*Albert_lee 2013-09-20 end*/
+/*
+	{POWER_ARM_EN,			EXYNOS4212_GPM3(5), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
+	{POWER_3D_EN,			EXYNOS4212_GPM3(6), 0, 1, NULL}, // low is  default volt, high is another volt (PNU cc)
+*/
+	{POWER_INT_EN,			EXYNOS4212_GPM3(7), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
+
+ 	{POWER_GPS_RST,		EXYNOS4_GPL0(6), 0, 1, NULL},
+	{POWER_GPS_EN,			EXYNOS4_GPL1(6), 1, 1, gps_power_on},
+
+#if 1
+	{POWER_WIFI_EN,			EXYNOS4212_GPM3(1), 1, 1, NULL},
+	{POWER_WIFI_LDO,		EXYNOS4_GPL1(1), 1, 1, NULL},
+#endif
+	{POWER_GSM_SW,		GPIO_GSM_POWER_ON_OFF, 0, 1, gsm_power_ctl,gsm_power_read},
+	{POWER_GSM_WUP,		GPIO_GSM_WAKE_IN, 1, 1, NULL},
+	{POWER_LCD33_EN,		EXYNOS4212_GPM2(3), 1, 1, NULL},
+	{POWER_LVDS_PD,		EXYNOS4212_GPM2(4), 1, 1, NULL},
+	{POWER_BL_EN,			EXYNOS4212_GPM4(0), 1, 1, NULL},
+
+	{POWER_HUB_RST,		EXYNOS4212_GPM3(2), 1, 1, NULL},
+	{POWER_HUB_CON,		EXYNOS4212_GPM3(3), 1, 1, NULL},
+	{POWER_HUB2_RST,		GPIO_USB_HUB2_RESET, 0, 1, usb_hub_reset},
+
+	{POWER_SPK_EN,			EXYNOS4212_GPM1(4), 1, 1, NULL},
+	{POWER_USB_SW,			EXYNOS4212_GPM1(5), 1, 1, NULL},
+	{POWER_MOTOR_EN,		EXYNOS4212_GPM1(6), 1, 1, NULL},
+//	{POWER_TS_RST,			EXYNOS4212_GPM3(4), 1, 1, NULL},
+
+	{POWER_STATE_AC,		EXYNOS4_GPX0(2), 1, 0, NULL},  //EINT2
+	{POWER_STATE_CHARGE,	EXYNOS4_GPX2(7), 1, 0, NULL}, //EINT23
+
+	{POWER_FCAM_28V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
+	{POWER_FCAM_18V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
+	{POWER_FCAM_PD,	EXYNOS4_GPL0(1), 1, 1, NULL}, 
+	{POWER_FCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
+
+	{POWER_BCAM_28V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
+	{POWER_BCAM_18V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
+	{POWER_BCAM_PD,	EXYNOS4_GPL0(0), 1, 1, NULL}, 
+	{POWER_BCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
+
+
+
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, delay_1_ms},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+};
+
 extern void sdhci_s3c_notify_change(struct platform_device *dev, int state);
 
 static int gsm_on=0;
@@ -398,34 +474,32 @@ static int power_spk( struct power_gpio_node node , int on)
 	return 1;
 }
 
+static int power_cam_dldo2_2v8(struct power_gpio_node node , int on)
+{
+	struct regulator *vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
+	if(on)
+		regulator_enable(vdd28_cam_regulator);
+	else
+		regulator_disable(vdd28_cam_regulator);
+	regulator_put(vdd28_cam_regulator);
+}
+
+static int power_cam_eldo3_af(struct power_gpio_node node , int on)
+{
+	struct regulator *vdd18_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
+	if(on)
+		regulator_enable(vdd18_cam_regulator);
+	else
+		regulator_disable(vdd18_cam_regulator);
+	regulator_put(vdd18_cam_regulator);
+}
+
 static struct power_gpio_node s_gpio_node_d720[] =
 {
 
-//	{POWER_5V_EN,			EXYNOS4_GPK1(1), 1, 1, NULL},
-/* added by Albert_lee 2013-09-20 begin */
-
-/* OEM FOR D816 by Albert_lee 2014-04-23 begin */
 	{POWER_5V_EN,			EXYNOS4_GPK1(2), 1, 1, NULL},
- /*Albert_lee 2014-04-23 end*/
-//	{POWER_5V_EN,			EXYNOS4_GPL2(4), 1, 1, NULL},
-
- /*Albert_lee 2013-09-20 end*/
-/*
-	{POWER_ARM_EN,			EXYNOS4212_GPM3(5), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
-	{POWER_3D_EN,			EXYNOS4212_GPM3(6), 0, 1, NULL}, // low is  default volt, high is another volt (PNU cc)
-*/
 	{POWER_INT_EN,			EXYNOS4212_GPM3(7), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
-	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
-	{POWER_CAMA_PD,		EXYNOS4_GPL0(0), 0, 1, NULL},
-	{POWER_CAMB_PD,		EXYNOS4_GPL0(1), 0, 1, NULL},
-	{POWER_CAM_RST,		EXYNOS4212_GPJ1(4), 0, 1, NULL},
-/*
-	{POWER_BT_EN,			EXYNOS4212_GPM3(1), 1, 1, NULL},
-	{POWER_BT_RST,			EXYNOS4_GPL0(2), 0, 1, NULL},
-	{POWER_BT_LDO,			EXYNOS4_GPL0(3), 1, 1, NULL},
- 	{POWER_BT_WUP,			EXYNOS4_GPL0(4), 1, 1, NULL},
-*/
-// 	{POWER_GPS_RST,		EXYNOS4212_GPM4(5), 0, 1, NULL},
+
 	{POWER_GPS_EN,			EXYNOS4212_GPM4(6), 1, 1, NULL},
 
 #if 1
@@ -438,8 +512,6 @@ static struct power_gpio_node s_gpio_node_d720[] =
 //	{POWER_GSM_SW,		GPIO_GSM_POWER_EN, 1, 1, power_gsm_sdio},
 	{POWER_LCD33_EN,		EXYNOS4212_GPM2(3), 1, 1, NULL},
 	{POWER_LCD18_EN,		EXYNOS4212_GPM2(0), 0, 1, NULL},  // notice: Low for enable
-
-//	{POWER_LCD18_EN,		EXYNOS4212_GPM2(0), 1, 1, NULL},
 
 	{POWER_LVDS_PD,		EXYNOS4212_GPM2(4), 1, 1, NULL},
 	{POWER_BL_EN,			EXYNOS4212_GPM4(0), 1, 1, NULL},
@@ -454,12 +526,18 @@ static struct power_gpio_node s_gpio_node_d720[] =
 	{POWER_TS_RST,			EXYNOS4212_GPM3(4), 1, 1, NULL},
 
 	{POWER_STATE_AC,		EXYNOS4_GPX0(2), 1, 0, NULL},  //EINT2
-//	{POWER_STATE_CHARGE,	EXYNOS4_GPX2(7), 1, 0, NULL}, //EINT23
 
-//	{POWER_SCAN_EN,		GPIO_SCAN_EN, 1, 1, NULL},
-//	{POWER_SCAN_BUZ,		GPIO_SCAN_BUZ, 1, 0, NULL},
+	{POWER_FCAM_28V,	                             0, 1, 1, power_cam_dldo2_2v8}, 
+	{POWER_FCAM_18V,	     GPIO_EXAXP22(1), 1, 1, NULL}, 
+	{POWER_FCAM_PD,	EXYNOS4_GPL0(1), 1, 1, NULL}, 
+	{POWER_FCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
 
-//	{POWER_RFID_EN,			GPIO_RFID_EN, 1, 1, NULL},
+	{POWER_BCAM_28V,	                             0, 1, 1, power_cam_dldo2_2v8}, 
+	{POWER_BCAM_18V,	     GPIO_EXAXP22(1), 1, 1, NULL}, 
+	{POWER_BCAM_PD,	EXYNOS4_GPL0(0), 1, 1, NULL}, 
+	{POWER_BCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
+
+	{POWER_CAM_AF,	                                    0,  1, 1, power_cam_eldo3_af}, 
 
 	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, delay_1_ms},      // unused, only for expand array size
 	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
@@ -477,9 +555,9 @@ const static struct power_gpio_node s_gpio_node_d816[] =
 	{POWER_3D_EN,			EXYNOS4212_GPM3(6), 0, 1, NULL}, // low is  default volt, high is another volt (PNU cc)
 #endif
 	{POWER_INT_EN,			EXYNOS4212_GPM3(7), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
-	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
+/*	{POWER_CAM_EN,			EXYNOS4212_GPM3(0),  1, 1, NULL},
 	{POWER_CAMA_PD,		EXYNOS4_GPL0(0), 0, 1, NULL},
-	{POWER_CAMB_PD,		EXYNOS4_GPL0(1), 0, 1, NULL},
+	{POWER_CAMB_PD,		EXYNOS4_GPL0(1), 0, 1, NULL},  */
 /*
 	{POWER_BT_EN,			EXYNOS4212_GPM3(1), 1, 1, NULL},
 	{POWER_BT_RST,			EXYNOS4_GPL0(2), 0, 1, NULL},
@@ -865,6 +943,14 @@ static void init_gpio_nodes(void)
 			s_gpio_node[i].index = POWER_ITEM_INVALID;
 		}
 		memcpy(s_gpio_node, s_gpio_node_d721, sizeof(s_gpio_node_d721));
+	}
+	if(strstr(g_selected_utmodel, "s106"))
+	{
+		printk(KERN_DEBUG "power_gpio: detected s106 board type PCB.\n");
+		for(i = 0; i < ARRAY_SIZE(s_gpio_node); i++) {
+			s_gpio_node[i].index = POWER_ITEM_INVALID;
+		}
+		memcpy(s_gpio_node, s_gpio_node_s106, sizeof(s_gpio_node_s106));
 	}
 
 }

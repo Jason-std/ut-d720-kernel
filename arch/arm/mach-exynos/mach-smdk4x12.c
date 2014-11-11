@@ -694,7 +694,50 @@ static struct s3c_platform_camera ov5645 = {
 
 #endif
 
+#ifdef CONFIG_VIDEO_HM5065
+static struct ut2055_platform_data hm5065_plat = {
+	.default_width = 2592,
+	.default_height = 1944,
+	.pixelformat = V4L2_PIX_FMT_YUYV,
+	.freq = 24000000,
+	.is_mipi = 0,
+};
 
+static struct i2c_board_info hm5065_i2c_info = {
+	I2C_BOARD_INFO("HM5065",  (0x1f)),  // hm5065
+	.platform_data = &hm5065_plat,
+};
+
+static struct s3c_platform_camera hm5065 = {
+	.id		= CAMERA_PAR_A,
+	.clk_name	= "sclk_cam0",
+	.i2c_busnum	= 7,
+	.type		= CAM_TYPE_ITU,
+	.fmt		= ITU_656_YCBCR422_8BIT,
+	.order422	= CAM_ORDER422_8BIT_YCBYCR,
+	.info		= &hm5065_i2c_info,
+	.pixelformat	= V4L2_PIX_FMT_YUYV,
+	.srclk_name	= "xusbxti",
+	.clk_rate	= 24000000,
+	.line_length	= 2800,
+	.width		= 2592,
+	.height		= 1944,
+	.window		= {
+		.left	= 0,
+		.top	= 0,
+		.width	= 2592,
+		.height	= 1944,
+	},
+
+	/* Polarity */
+	.inv_pclk	= 0,
+	.inv_vsync	= 1,
+	.inv_href	= 0,
+	.inv_hsync	= 0,
+	.reset_camera	= 1,
+	.initialized	= 0,
+};
+#endif
 
 #ifdef CONFIG_VIDEO_BF3A20  
 
@@ -738,6 +781,53 @@ static struct s3c_platform_camera bf3a20 = {
 	.mipi_lanes	= 2,
 	.mipi_settle = 12,
 	.mipi_align	= 32,
+
+	/* Polarity */
+	.inv_pclk	= 0,
+	.inv_vsync	= 1,
+	.inv_href	= 0,
+	.inv_hsync	= 0,
+	.reset_camera	= 1,
+	.initialized	= 0,
+};
+
+#endif
+
+#ifdef CONFIG_VIDEO_GC2035  
+
+static struct ut2055_platform_data gc2035_plat = {
+	.default_width = 1600,
+	.default_height = 1200,
+	.pixelformat = V4L2_PIX_FMT_YUYV,
+	.freq = 24000000,
+	.is_mipi = 0,
+};
+
+static struct i2c_board_info gc2035_i2c_info = {
+	I2C_BOARD_INFO("GC2035", 0x3c),
+	.platform_data = &gc2035_plat,
+};
+
+static struct s3c_platform_camera gc2035 = {
+	.id		= CAMERA_PAR_A,
+	.clk_name	= "sclk_cam0",
+	.i2c_busnum	= 7,
+	.type		= CAM_TYPE_ITU,
+	.fmt		= ITU_656_YCBCR422_8BIT,
+	.order422	= CAM_ORDER422_8BIT_YCBYCR,
+	.info		= &gc2035_i2c_info,
+	.pixelformat	= V4L2_PIX_FMT_YUYV,
+	.srclk_name	= "xusbxti",
+	.clk_rate	= 24000000,
+	.line_length	= 1920,
+	.width		= 1600,
+	.height		= 1200,
+	.window		= {
+		.left	= 0,
+		.top	= 0,
+		.width	= 1600,
+		.height	= 1200,
+	},
 
 	/* Polarity */
 	.inv_pclk	= 0,
@@ -1297,12 +1387,20 @@ static struct s3c_platform_fimc fimc_plat = {
 		&ov5645,
 #endif
 
+#ifdef CONFIG_VIDEO_HM5065
+		&hm5065,
+#endif
+
 #ifdef CONFIG_VIDEO_S5K4ECGX
 		&s5k4ec,
 #endif
 
 #ifdef CONFIG_VIDEO_BF3A20
 		&bf3a20,
+#endif
+
+#ifdef CONFIG_VIDEO_GC2035
+		&gc2035,
 #endif
 
 #ifdef CONFIG_VIDEO_S5K4BA
@@ -4031,7 +4129,11 @@ static void __init smdk4x12_machine_init(void)
 #endif
 
 	s3c_i2c7_set_platdata(NULL);
-	i2c_register_board_info(7, i2c_devs7, ARRAY_SIZE(i2c_devs7));
+
+	if (strstr(g_selected_utmodel, "s106")) {
+		i2c_register_board_info(2, i2c_devs7, ARRAY_SIZE(i2c_devs7));
+	}else
+		i2c_register_board_info(7, i2c_devs7, ARRAY_SIZE(i2c_devs7));
 
 #ifdef CONFIG_ANDROID_PMEM
 	android_pmem_set_platdata();

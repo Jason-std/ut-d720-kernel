@@ -14,10 +14,10 @@ enum power_item
 #endif	
 	POWER_INT_EN,
 		
-	POWER_CAM_EN,
-	POWER_CAMA_PD, //camera A power down
-	POWER_CAMB_PD, //camera B power down
-	POWER_CAM_RST, //camera reset
+//	POWER_CAM_EN,
+//	POWER_CAMA_PD, //camera A power down
+//	POWER_CAMB_PD, //camera B power down
+//	POWER_CAM_RST, //camera reset
 /*	
 	POWER_BT_EN,
 	POWER_BT_RST,
@@ -56,6 +56,18 @@ enum power_item
 	POWER_SCAN_EN,
 	POWER_SCAN_BUZ,
 	POWER_RFID_EN,
+
+	POWER_FCAM_28V,   // front camera
+	POWER_FCAM_18V,
+	POWER_FCAM_PD,
+	POWER_FCAM_RST,
+
+	POWER_BCAM_28V,  // back camera
+	POWER_BCAM_18V,
+	POWER_BCAM_PD,
+	POWER_BCAM_RST,
+
+	POWER_CAM_AF,
 
 	POWER_ITEM_MAX,
 	POWER_ITEM_INVALID,

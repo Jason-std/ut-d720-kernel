@@ -31,6 +31,7 @@
 #ifdef CONFIG_VIDEO_SAMSUNG_V4L2
 #include <linux/videodev2_samsung.h>
 #endif
+#include "../../../oem_drv/power_gpio.h"
 
 
 static int output_format_index = 0;
@@ -124,7 +125,7 @@ static int bf3a20_power( int enable)
 {
 	int ret=0;
 	printk("**1* fun: bf3a20_sensor_power ,enable = %d\n",enable);
-	
+/*	
 	if (enable) {
 		vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
 		regulator_enable(vdd28_cam_regulator);
@@ -149,14 +150,28 @@ static int bf3a20_power( int enable)
 		
 		gpio_direction_output(GPIO_CAMERA_PD0, 1);
 	}
+*/
+	if(enable){
+		write_power_item_value(POWER_FCAM_18V,1);
+		write_power_item_value(POWER_FCAM_28V,1);
 
+		write_power_item_value(POWER_FCAM_PD,1);
+		write_power_item_value(POWER_FCAM_RST,1);
+		msleep(50);
+		write_power_item_value(POWER_FCAM_PD,0);
+		msleep(20);
+		write_power_item_value(POWER_FCAM_RST,0);
+		msleep(45);
+		write_power_item_value(POWER_FCAM_RST,1);
+		msleep(15);
+	}else{
+		write_power_item_value(POWER_FCAM_18V,0);
+		write_power_item_value(POWER_FCAM_28V,0);
+		write_power_item_value(POWER_FCAM_PD,1);
+	}
 	return ret;
 }
 
-static int bf3a20_power11( int enable)
-{
-	return 0;
-}
 
 static inline struct bf3a20_state *to_state(struct v4l2_subdev *sd)
 {
@@ -170,7 +185,7 @@ static int bf3a20_reset(struct v4l2_subdev *sd)
 	return bf3a20_init(sd, 0);
 }
 
-int DDI_I2C_Read(struct v4l2_subdev *sd, unsigned short reg,unsigned char reg_bytes, 
+static int DDI_I2C_Read(struct v4l2_subdev *sd, unsigned short reg,unsigned char reg_bytes, 
 					unsigned char *val, unsigned char val_bytes)
 {
 	unsigned char data[2];
@@ -954,7 +969,6 @@ static int bf3a20_remove(struct i2c_client *client)
 {
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
 	printk("bf3a20_remove\n");
-//	bf3a20_power11( 0);
 	bf3a20_power(0);
 	v4l2_device_unregister_subdev(sd);
 	kfree(to_state(sd));

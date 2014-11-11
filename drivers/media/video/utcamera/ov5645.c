@@ -32,6 +32,7 @@
 #ifdef CONFIG_VIDEO_SAMSUNG_V4L2
 #include <linux/videodev2_samsung.h>
 #endif
+#include "../../../oem_drv/power_gpio.h"
 
 
 static int output_format_index = 0;
@@ -128,7 +129,7 @@ struct ov5645_enum_framesize ov5645_capture_framesize_list[] = {
 static int ov5645_power( int enable)
 {	
 	int ret=0;
-	struct regulator *vdd28_cam_regulator = NULL;
+/*	struct regulator *vdd28_cam_regulator = NULL;
 	struct regulator *vddaf_cam_regulator = NULL;
 	printk("**1* fun: ov5645_sensor_power ,enable = %d\n",enable);
 	if (enable) {
@@ -163,14 +164,31 @@ static int ov5645_power( int enable)
 		regulator_put(vddaf_cam_regulator);
 		gpio_direction_output(GPIO_CAMERA_PD0, 0);
 	}
+*/
 
+	if(enable){
+		write_power_item_value(POWER_BCAM_18V,1);
+		write_power_item_value(POWER_BCAM_28V,1);
+		write_power_item_value(POWER_CAM_AF,1);
+
+		write_power_item_value(POWER_BCAM_PD,0);
+		write_power_item_value(POWER_BCAM_RST,1);
+		msleep(5);
+		write_power_item_value(POWER_BCAM_PD,1);
+		msleep(2);
+		write_power_item_value(POWER_BCAM_RST,0);
+		msleep(5);
+		write_power_item_value(POWER_BCAM_RST,1);
+		msleep(2);
+	}else{
+		write_power_item_value(POWER_BCAM_18V,0);
+		write_power_item_value(POWER_BCAM_28V,0);
+		write_power_item_value(POWER_CAM_AF,0);
+		write_power_item_value(POWER_BCAM_PD,0);
+	}
 	return ret;
 }
 
-static int ov5645_power11( int enable)
-{
-	return 0;
-}
 
 static inline struct ov5645_state *to_state(struct v4l2_subdev *sd)
 {
@@ -1422,7 +1440,6 @@ static int ov5645_remove(struct i2c_client *client)
 {
 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
 	printk("ov5645_remove\n");
-//	ov5645_power11( 0);
 	
 	v4l2_device_unregister_subdev(sd);
 	kfree(to_state(sd));
