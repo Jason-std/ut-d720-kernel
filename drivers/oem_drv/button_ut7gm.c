@@ -312,7 +312,7 @@ static int s3c_button_resume(struct platform_device *pdev)
 	u32 stat_val = 0;
 
 #ifdef CONFIG_WAKELOCK_KEEP
-//	keep_wakeup_timeout(10);//jerry
+	keep_wakeup_timeout(10);//jerry
 #endif
 	
 	mod_timer(&timer, jiffies + ms_to_jiffies(1800)); 
@@ -320,12 +320,14 @@ static int s3c_button_resume(struct platform_device *pdev)
 	 stat_val = (__raw_readl(S5P_WAKEUP_STAT));
 	if( stat_val & 1) {
 		if(s3c_pm_is_key_wakeup()) {
-			input_report_key(input, KEY_END, 1);
+		//	input_report_key(input, KEY_END, 1);
+			input_report_key(input, KEY_POWER, 1);
 			input_sync(input);
 			mdelay(1);
 			printk(KERN_DEBUG"s3c_button_resume by eint!!\n");
 			printk("\ns3c_button_resume by key!!\n\n");
-			input_report_key(input, KEY_END, 0);
+		//	input_report_key(input, KEY_END, 0);
+			input_report_key(input, KEY_POWER, 0);
 			input_sync(input);
 			//s3c_check_battery_adc();  //  add fot test when key INT
 		}

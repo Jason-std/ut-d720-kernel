@@ -149,7 +149,8 @@ static void check_model(void)
 #if 1
 	if(strncmp(g_selected_utmodel, "s101", strlen("s101")) == 0
 		|| strstr(g_selected_utmodel, "d107")
-		|| strstr(g_selected_utmodel, "d108")		
+		|| strstr(g_selected_utmodel, "d108")
+		|| strstr(g_selected_utmodel, "s106")		
 	) {
 		SCREEN_MAX_X = 1280;
 		SCREEN_MAX_Y = 800;
