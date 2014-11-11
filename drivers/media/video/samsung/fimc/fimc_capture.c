@@ -283,7 +283,7 @@ retry:
 			clk_disable(ctrl->cam->clk);
 			fimc->mclk_status = CAM_MCLK_OFF;
 		}
-		if (retry_cnt++ < 3) {
+		if (retry_cnt++ < 1) {  // modify by Leslie 
 			msleep(100);
 			fimc_err("Retry power on(%d/3)\n\n", retry_cnt);
 			goto retry;
