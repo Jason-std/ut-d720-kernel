@@ -254,7 +254,10 @@ static int act8847_dcdc_get_voltage(struct regulator_dev *dev)
 	u16 reg;
 	int val;
 
-	reg = act8847_reg_read(act8847, ACT8847_BUCK_TARGET_VSET2_REG(buck));
+	if(buck==0)
+		reg = act8847_reg_read(act8847, 0x10);
+	else
+		reg = act8847_reg_read(act8847, ACT8847_BUCK_TARGET_VSET2_REG(buck));
 	reg &= BUCK_TARGET_VOL_MASK;
 
 	if (reg <= BUCK_TARGET_VOL_MAX_IDX)
@@ -271,7 +274,7 @@ static int act8847_dcdc_set_voltage(struct regulator_dev *dev,
 				  int min_uV, int max_uV, unsigned *selector)
 {
 	struct act8847 *act8847 = rdev_get_drvdata(dev);
-	int buck = rdev_get_id(dev) - ACT8847_DCDC1;
+	int buck = rdev_get_id(dev) - ACT8847_DCDC1  ;
 	int min_vol = min_uV / 1000, max_vol = max_uV / 1000;
 	const int *vol_map = regulator_voltage_map;
 	u16 val;
@@ -286,13 +289,21 @@ static int act8847_dcdc_set_voltage(struct regulator_dev *dev,
 		if (vol_map[val] >= min_vol)
 			break;
 
-	if (vol_map[val] > max_vol)
-		return -EINVAL;
+	if (vol_map[val] > max_vol){
+		printk("%s:cannot find a suitable vol(%d-%d) for buck=%d,"
+		      "use %d instead\n",__func__,min_vol,max_vol,buck,vol_map[val]);
+		//return -EINVAL;
+	}
 
 	act_dbg("act8847_dcdc_set_voltage: index=%u, \n", val);
 
-	ret = act8847_set_bits(act8847, ACT8847_BUCK_TARGET_VSET2_REG(buck),
-	       BUCK_TARGET_VOL_MASK, val);
+
+	if(buck==0){
+		ret = act8847_set_bits(act8847, 0x10,BUCK_TARGET_VOL_MASK, val);
+	}else{
+		ret = act8847_set_bits(act8847, ACT8847_BUCK_TARGET_VSET2_REG(buck),
+		       BUCK_TARGET_VOL_MASK, val);
+	}
 	#if 0
 	if (ret)
 		return ret;
@@ -578,10 +589,11 @@ static int act8847_set_bits(struct act8847 *act8847, u8 reg, u16 mask, u16 val)
 	mutex_lock(&act8847->io_lock);
 
 	ret = act8847_i2c_read(act8847->i2c, reg, 1, &tmp);
+	act_dbg("read reg[0x%02x]=0x%02x\n,ret=%d\n",(int)reg,(unsigned)tmp&0xff,ret);
 	tmp = (tmp & ~mask) | val;
 	if (ret == 0) {
 		ret = act8847_i2c_write(act8847->i2c, reg, 1, &tmp);
-		dev_dbg(act8847->dev, "reg write 0x%02x -> 0x%02x\n", (int)reg,
+		act_dbg( "reg write 0x%02x -> 0x%02x\n", (int)reg,
 			(unsigned)val&0xff);
 
 	}
