@@ -152,11 +152,11 @@ static void check_model(void)
 		
 	}else if(strncmp(g_selected_utmodel, "d721", strlen("d721")) == 0) {
 
-		SCREEN_MAX_Y = 1280;
-		SCREEN_MAX_X =  800;
+		SCREEN_MAX_Y = 800;
+		SCREEN_MAX_X =  1280;
 		model_tp = 721;
-		XY_SWAP_ENABLE=0;
-		X_REVERSE_ENABLE=1;
+		XY_SWAP_ENABLE=1;
+		X_REVERSE_ENABLE=0;
 		Y_REVERSE_ENABLE=0;
 		
 	}
@@ -226,8 +226,8 @@ static void vtl_ts_vkeys_init(struct ts_info *ts)
 	ts->vkeys_num = KEY_NUM;
 	ts->vkeys = kzalloc(ts->vkeys_num * sizeof(struct struct_vkeys_data), GFP_KERNEL);
 	ts->vkeys[0].key_code = KEY_HOME;
-	ts->vkeys[0].x0 = ts->vkeys[0].x1 = -3200;
-	ts->vkeys[0].y0 = ts->vkeys[0].y1 = 1;
+	ts->vkeys[0].x0 = ts->vkeys[0].x1 = 1;
+	ts->vkeys[0].y0 = ts->vkeys[0].y1 = 4000;
 #if 0
 
 	ts->vkeys[1].key_code = KEY_MENU;
@@ -390,7 +390,7 @@ static void vtl_ts_report_xy_coord(struct ts_info *ts)
 			
 #ifdef HAVE_TOUCH_KEY
 			if (ts->config_info.b_CtpHaveTouchKey==1) {
-				if(x == -3200)
+				if(y == 4000)
 		    		{
 		 
 					for ( vkey_iter = 0; vkey_iter < ts->vkeys_num; vkey_iter++ ) {
