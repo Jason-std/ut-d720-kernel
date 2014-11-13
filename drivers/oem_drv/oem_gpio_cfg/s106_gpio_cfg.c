@@ -46,16 +46,21 @@ extern char g_selected_utmodel[];
 static struct gpio_node s106_gpio[]={
 	{
 		.name="act_power_en",
-		.pin=EXYNOS4X12_GPM1(1),
+		.pin=EXYNOS4212_GPM1(1),
 		.out_value=1,
-	}	
+	},
+	{
+		.name="sfz_power_en",
+		.pin=EXYNOS4_GPK1(0),
+		.out_value=1,
+	}
 } ;
 
 static struct oem_gpio_nodes s106_gpio_nodes={
 	.nodes=s106_gpio,
 	.count=ARRAY_SIZE(s106_gpio),
 	.ut_model="s106",
-	.dir_name="s106_power",
+	.dir_name="oem_power",
 };
 static int __init s106_gpio_cfg_modinit(void)
 {	

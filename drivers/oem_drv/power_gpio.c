@@ -201,7 +201,7 @@ static int delay_1_ms(struct power_gpio_node node,int on)
 }
 
 
-static struct power_gpio_node s_gpio_node[POWER_ITEM_MAX+1] =
+static struct power_gpio_node s_gpio_node[] =
 {
 
 	{POWER_5V_EN,			EXYNOS4_GPK1(1), 1, 1, NULL},
@@ -258,6 +258,21 @@ static struct power_gpio_node s_gpio_node[POWER_ITEM_MAX+1] =
 
 	{POWER_RFID_EN,			GPIO_RFID_EN, 1, 1, NULL},
 
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, delay_1_ms},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, delay_1_ms},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, delay_1_ms},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
 	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, delay_1_ms},      // unused, only for expand array size
 	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
 	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
@@ -404,6 +419,7 @@ static struct power_gpio_node s_gpio_node_s106[] =
 	{POWER_GSM_SW,		GPIO_GSM_POWER_ON_OFF, 0, 1, gsm_power_ctl,gsm_power_read},
 	{POWER_GSM_WUP,		GPIO_GSM_WAKE_IN, 1, 1, NULL},
 	{POWER_LCD33_EN,		EXYNOS4212_GPM2(3), 1, 1, NULL},
+	{POWER_LCD18_EN,		EXYNOS4212_GPM2(0), 0, 1, NULL},
 	{POWER_LVDS_PD,		EXYNOS4212_GPM2(4), 1, 1, NULL},
 	{POWER_BL_EN,			EXYNOS4212_GPM4(0), 1, 1, NULL},
 
