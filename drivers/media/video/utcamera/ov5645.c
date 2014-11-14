@@ -719,7 +719,7 @@ static int ov5645_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *fmt)
 	unsigned short *item;
 	struct ov5645_state *state =to_state(sd);
 	
-	printk("lzy: %s,width = %d,height = %d\n",__func__,fmt->width,fmt->height);
+	printk("*** lzy: %s,width = %d,height = %d\n",__func__,fmt->width,fmt->height);
 	state->pix.width = fmt->width;
 	state->pix.height = fmt->height;
 
@@ -928,7 +928,7 @@ static int ov5645_set_exposure(struct v4l2_subdev *sd, struct v4l2_control * ctr
 			ret=i2c_write_array_16(client, OV5645_reg_exposure_3);
 			break;
 		default:
-			printk("%s:default \n",__func__);
+			//printk("%s:default \n",__func__);
 			ret = -EINVAL	;		
 	}
 	if(ret==0)
@@ -986,7 +986,7 @@ static int ov5645_set_wb(struct v4l2_subdev *sd, struct v4l2_control * ctrl)
 			ret=i2c_write_array_16(client, OV5645_reg_wb_fluorscent);
 			break;
 		default:
-			printk("%s:default \n",__func__);
+			//printk("%s:default \n",__func__);
 			ret = -EINVAL	;		
 	}
 	if(ret==0)
@@ -1105,17 +1105,17 @@ static int ov5645_set_focus_mode(struct v4l2_subdev *sd, struct v4l2_control *ct
 		case FOCUS_MODE_TOUCH_FLASH_AUTO:
 		case FOCUS_MODE_TOUCH_FLASH_ON:
 		case FOCUS_MODE_TOUCH_FLASH_OFF:
-			printk("start to single focus\n");
+			//printk("start to single focus\n");
 			err=i2c_write_array_16(client, OV5645_focus_single);
 			break;
 
 		case FOCUS_MODE_CONTINOUS:
 		case FOCUS_MODE_CONTINOUS_XY:
-			printk("start to constant focus\n");
+			//printk("start to constant focus\n");
 			err=i2c_write_array_16(client, OV5645_focus_constant);
 			break;
 		default:
-			printk("%s:value=%d error\n",__func__,ctrl->value);
+			//printk("%s:value=%d error\n",__func__,ctrl->value);
 			err=-EINVAL;
 			break;
 	}
@@ -1136,14 +1136,14 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	{
 
 	case V4L2_CID_CAMERA_FLASH_MODE:
-		printk("%s:set flash mode\n",__func__);
+		//printk("%s:set flash mode\n",__func__);
 		ov5645_set_flash_mode(sd,ctrl);
 		break;
 	case V4L2_CID_CAMERA_BRIGHTNESS:
-		printk("%s:set brightness value=%d\n",__func__,ctrl->value);
+		//printk("%s:set brightness value=%d\n",__func__,ctrl->value);
 		break;
 	case V4L2_CID_CAMERA_WHITE_BALANCE:
-		printk("%s:set white balance value=%d\n",__func__,ctrl->value);
+		//printk("%s:set white balance value=%d\n",__func__,ctrl->value);
 		ov5645_set_wb(sd,ctrl);
 	
 		break;
@@ -1157,7 +1157,7 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	case V4L2_CID_CAMERA_FACE_DETECTION:
 		break;
 	case V4L2_CID_CAMERA_FOCUS_MODE:
-		printk("%s:set focus mode:value=%d\n",__func__,ctrl->value);
+		//printk("%s:set focus mode:value=%d\n",__func__,ctrl->value);
 		state->focus_mode=ctrl->value;
 		ov5645_set_focus_mode(sd,ctrl);
 		break;
@@ -1174,7 +1174,7 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		else if(value>state->pix.width-16)
 			value=value>state->pix.width-16;
 		value=value/16;
-		printk("%s:set posx=%d\n",__func__,value);
+		//printk("%s:set posx=%d\n",__func__,value);
 		reg_write_16(client,0x3024,value);
 		break;
 	case V4L2_CID_CAMERA_OBJECT_POSITION_Y:
@@ -1183,14 +1183,18 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		else if(value>state->pix.height-16)
 			value=value>state->pix.height-16;
 		value=value/16;
-		printk("%s:set posy=%d\n",__func__,value);
+		//printk("%s:set posy=%d\n",__func__,value);
 		reg_write_16(client,0x3025,value);
 		break;
 	case V4L2_CID_CAMERA_SET_AUTO_FOCUS:
-		printk("%s:set auto focus,value=%d\n",__func__,ctrl->value);
+		//printk("%s:set auto focus,value=%d\n",__func__,ctrl->value);
 		if(ctrl->value==AUTO_FOCUS_OFF){
 			state->focus_mode=-1;
 			err=i2c_write_array_16(client, OV5645_focus_cancel);
+		}else{
+			//printk("start to single focus22\n");
+			state->focus_mode=FOCUS_MODE_AUTO;
+			err=i2c_write_array_16(client, OV5645_focus_constant);
 		}
 		break;
 	case V4L2_CID_CAMERA_FRAME_RATE:
@@ -1209,12 +1213,12 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		err = ov5645_reset(sd);
 		break;
 	case V4L2_CID_CAMERA_EXPOSURE:
-		printk("%s:set exposure value=%d\n",__func__,ctrl->value);
+		//printk("%s:set exposure value=%d\n",__func__,ctrl->value);
 		ov5645_set_exposure(sd,ctrl);
 		break;
 	default:
 		err=0;
-	printk("default");
+	//printk("default");
 		/* err = -EINVAL; */
 		break;
 	}
@@ -1240,11 +1244,11 @@ static int ov5645_init(struct v4l2_subdev *sd, u32 val)
 	ov5645_power( 1);
 
 	reg_read_16(client, 0x300a, &v1);
-	printk("enter %s,reg0x300a=0x%02x\n",__func__,v1);
+	//printk("enter %s,reg0x300a=0x%02x\n",__func__,v1);
 	reg_read_16(client, 0x300b, &v2);
-	printk("enter %s,reg0x300b=0x%02x\n",__func__,v2);	
+	//printk("enter %s,reg0x300b=0x%02x\n",__func__,v2);	
 	state->check_previewdata = 0;
-	printk("%s: camera initialization end\n", __func__);
+	//printk("%s: camera initialization end\n", __func__);
 	if(v1==0x56&&v2==0x45)
 		printk("ov5645 camera\n");
 	else{
@@ -1263,8 +1267,8 @@ static int ov5645_init(struct v4l2_subdev *sd, u32 val)
 	reg_read_16(client, 0x8000, &value);
 	if(value!=0x02){
 		printk("###########%s:init error ############\n",__func__);
-		printk("###########%s:init error ############\n",__func__);
-		printk("###########%s:init error ############\n",__func__);
+		//printk("###########%s:init error ############\n",__func__);
+		//printk("###########%s:init error ############\n",__func__);
 	}
 	
 	i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_init_2lane);
@@ -1329,10 +1333,9 @@ static int ov5645_s_stream(struct v4l2_subdev *sd, int enable)
 	if(enable){		
 		i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_start_stream);
 		usleep_range(5000, 5500); 
-		if((state->focus_mode==FOCUS_MODE_CONTINOUS) ||
-		   			(state->focus_mode==FOCUS_MODE_CONTINOUS_XY))
+		if((state->focus_mode==FOCUS_MODE_CONTINOUS) ||(state->focus_mode==FOCUS_MODE_CONTINOUS_XY) || (state->focus_mode==FOCUS_MODE_TOUCH)){
 			i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_focus_constant); 
-		
+		}		
 	}else{
 		i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_stop_stream);
 	}	
