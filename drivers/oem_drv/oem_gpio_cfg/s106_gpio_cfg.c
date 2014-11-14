@@ -60,7 +60,7 @@ static struct oem_gpio_nodes s106_gpio_nodes={
 	.nodes=s106_gpio,
 	.count=ARRAY_SIZE(s106_gpio),
 	.ut_model="s106",
-	.dir_name="oem_power",
+	.dir_name="s106_power",
 };
 static int __init s106_gpio_cfg_modinit(void)
 {	

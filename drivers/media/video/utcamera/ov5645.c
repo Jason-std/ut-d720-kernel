@@ -80,6 +80,7 @@ struct ov5645_state
 	int ver;
 	int fps;
 	int check_previewdata;
+	int focus_mode;
 };
 
 enum
@@ -1101,11 +1102,17 @@ static int ov5645_set_focus_mode(struct v4l2_subdev *sd, struct v4l2_control *ct
 	switch(ctrl->value){
 		case FOCUS_MODE_AUTO:
 		case FOCUS_MODE_TOUCH:
-		case FOCUS_MODE_TOUCH_CONTINUOUS:
 		case FOCUS_MODE_TOUCH_FLASH_AUTO:
 		case FOCUS_MODE_TOUCH_FLASH_ON:
 		case FOCUS_MODE_TOUCH_FLASH_OFF:
+			printk("start to single focus\n");
 			err=i2c_write_array_16(client, OV5645_focus_single);
+			break;
+
+		case FOCUS_MODE_CONTINOUS:
+		case FOCUS_MODE_CONTINOUS_XY:
+			printk("start to constant focus\n");
+			err=i2c_write_array_16(client, OV5645_focus_constant);
 			break;
 		default:
 			printk("%s:value=%d error\n",__func__,ctrl->value);
@@ -1151,6 +1158,7 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		break;
 	case V4L2_CID_CAMERA_FOCUS_MODE:
 		printk("%s:set focus mode:value=%d\n",__func__,ctrl->value);
+		state->focus_mode=ctrl->value;
 		ov5645_set_focus_mode(sd,ctrl);
 		break;
 	case V4L2_CID_CAM_JPEG_QUALITY:
@@ -1180,6 +1188,11 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		break;
 	case V4L2_CID_CAMERA_SET_AUTO_FOCUS:
 		printk("%s:set auto focus,value=%d\n",__func__,ctrl->value);
+		if(ctrl->value==AUTO_FOCUS_OFF){
+			state->focus_mode=-1;
+			err=i2c_write_array_16(client, OV5645_focus_cancel);
+		}
+		break;
 	case V4L2_CID_CAMERA_FRAME_RATE:
 		break;
 	case V4L2_CID_CAM_PREVIEW_ONOFF:
@@ -1221,6 +1234,7 @@ static int ov5645_init(struct v4l2_subdev *sd, u32 val)
 	uint8_t value = -1,v1,v2;
 	printk("enter %s\n",__func__);
 	 state->framesize_index=0;
+	 state->focus_mode=-1;
 
 	
 	ov5645_power( 1);
@@ -1315,7 +1329,10 @@ static int ov5645_s_stream(struct v4l2_subdev *sd, int enable)
 	if(enable){		
 		i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_start_stream);
 		usleep_range(5000, 5500); 
-	//	i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_focus_constant); 
+		if((state->focus_mode==FOCUS_MODE_CONTINOUS) ||
+		   			(state->focus_mode==FOCUS_MODE_CONTINOUS_XY))
+			i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_focus_constant); 
+		
 	}else{
 		i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_stop_stream);
 	}	
