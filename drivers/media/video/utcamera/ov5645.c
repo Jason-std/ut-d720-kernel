@@ -1097,7 +1097,7 @@ static int ov5645_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 
 static int ov5645_set_focus_mode(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 {
-	int err;
+	int err=0;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	switch(ctrl->value){
 		case FOCUS_MODE_AUTO:
@@ -1105,13 +1105,13 @@ static int ov5645_set_focus_mode(struct v4l2_subdev *sd, struct v4l2_control *ct
 		case FOCUS_MODE_TOUCH_FLASH_AUTO:
 		case FOCUS_MODE_TOUCH_FLASH_ON:
 		case FOCUS_MODE_TOUCH_FLASH_OFF:
-			//printk("start to single focus\n");
-			err=i2c_write_array_16(client, OV5645_focus_single);
+		//	printk("start to single focus\n");
+		//	err=i2c_write_array_16(client, OV5645_focus_single);
 			break;
 
 		case FOCUS_MODE_CONTINOUS:
 		case FOCUS_MODE_CONTINOUS_XY:
-			//printk("start to constant focus\n");
+			printk("start to constant focus\n");
 			err=i2c_write_array_16(client, OV5645_focus_constant);
 			break;
 		default:
@@ -1192,9 +1192,9 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 			state->focus_mode=-1;
 			err=i2c_write_array_16(client, OV5645_focus_cancel);
 		}else{
-			//printk("start to single focus22\n");
+			printk("start to single focus22\n");
 			state->focus_mode=FOCUS_MODE_AUTO;
-			err=i2c_write_array_16(client, OV5645_focus_constant);
+			err=i2c_write_array_16(client, OV5645_focus_single);
 		}
 		break;
 	case V4L2_CID_CAMERA_FRAME_RATE:
@@ -1267,8 +1267,8 @@ static int ov5645_init(struct v4l2_subdev *sd, u32 val)
 	reg_read_16(client, 0x8000, &value);
 	if(value!=0x02){
 		printk("###########%s:init error ############\n",__func__);
-		//printk("###########%s:init error ############\n",__func__);
-		//printk("###########%s:init error ############\n",__func__);
+		printk("###########%s:init error ############\n",__func__);
+		printk("###########%s:init error ############\n",__func__);
 	}
 	
 	i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_init_2lane);
@@ -1333,9 +1333,10 @@ static int ov5645_s_stream(struct v4l2_subdev *sd, int enable)
 	if(enable){		
 		i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_start_stream);
 		usleep_range(5000, 5500); 
-		if((state->focus_mode==FOCUS_MODE_CONTINOUS) ||(state->focus_mode==FOCUS_MODE_CONTINOUS_XY) || (state->focus_mode==FOCUS_MODE_TOUCH)){
+		if((state->focus_mode==FOCUS_MODE_CONTINOUS) ||
+		   			(state->focus_mode==FOCUS_MODE_CONTINOUS_XY))
 			i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_focus_constant); 
-		}		
+		
 	}else{
 		i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_stop_stream);
 	}	
