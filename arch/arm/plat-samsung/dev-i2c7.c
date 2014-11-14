@@ -14,6 +14,7 @@
 #include <linux/kernel.h>
 #include <linux/string.h>
 #include <linux/platform_device.h>
+#include <linux/i2c-gpio.h>
 
 #include <mach/irqs.h>
 #include <mach/map.h>
@@ -22,6 +23,11 @@
 #include <plat/iic.h>
 #include <plat/devs.h>
 #include <plat/cpu.h>
+
+#include <mach/gpio.h>
+#include <plat/gpio-cfg.h>
+
+
 
 static struct resource s3c_i2c_resource[] = {
 	[0] = {
@@ -66,3 +72,26 @@ void __init s3c_i2c7_set_platdata(struct s3c2410_platform_i2c *pd)
 	if (!npd->cfg_gpio)
 		npd->cfg_gpio = s3c_i2c7_cfg_gpio;
 }
+
+
+/*
+
+struct i2c_gpio_platform_data i2c7_data  = {
+	.sda_pin		= EXYNOS4_GPD0(2),
+	.scl_pin	= EXYNOS4_GPD0(3),
+	.udelay	= 2,
+	.timeout  = 30,
+};
+
+struct platform_device s3c_device_i2c7 = {
+	.name		= "i2c-gpio",
+	.id		= 7,
+	.dev       ={
+		.platform_data = &i2c7_data,
+	}
+};
+void __init s3c_i2c7_set_platdata(struct s3c2410_platform_i2c *pd)
+{
+	s3c_gpio_cfgpin(EXYNOS4_GPD0(3), S3C_GPIO_OUTPUT);
+}
+*/
