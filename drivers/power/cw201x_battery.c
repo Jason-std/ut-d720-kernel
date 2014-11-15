@@ -29,6 +29,11 @@
 #include <plat/gpio-cfg.h>
 #include <linux/slab.h>
 
+#include <linux/module.h> 
+#include "../oem_drv/power_gpio.h"
+
+#include <linux/wakelock.h>
+
 #define INVALID_GPIO NULL
 #define GPIO_LOW		0
 #define GPIO_HIGH		1
@@ -68,6 +73,8 @@
 //extern int get_gadget_connect_flag(void); //check
 //extern int dwc_vbus_status( void ); //Íâ²¿AC²åÈë
 
+int cw_suspend_flag;
+
 int dwc_otg_check_dpdm(void)
 {
 	return 0;
@@ -89,6 +96,7 @@ struct cw_battery {
         struct delayed_work dc_wakeup_work;
         struct delayed_work bat_low_wakeup_work;
         const struct cw_bat_platform_data *plat_data;
+	 struct wake_lock bat_wake_lock;	
 
         struct power_supply rk_bat;
         struct power_supply rk_ac;
@@ -143,6 +151,17 @@ static int cw_write_word(struct i2c_client *client, u8 reg, u8 const buf[])
         return ret;
 }
 #endif
+
+static int samsung_adc_battery_get_charge_level(void)
+{
+	int charge_on = 0;
+
+		if (read_power_item_value(POWER_STATE_AC)){ 
+			charge_on = 1;
+		}
+	//printk("read_power_item_value(POWER_STATE_AC)=%d\n",read_power_item_value(POWER_STATE_AC));
+	return charge_on;
+}
 
 static int cw_update_config_info(struct cw_battery *cw_bat)
 {
@@ -379,12 +398,13 @@ static int cw_get_capacity(struct cw_battery *cw_bat)
 
         // ret = cw_read(cw_bat->client, REG_SOC, &reg_val);
         //ret = cw_read_word(cw_bat->client, REG_SOC, reg_val);
-        ret = cw_read_word(cw_bat->client, REG_SOC);
+       ret = cw_read(cw_bat->client, REG_SOC,&reg_val[0]);
         if (ret < 0)
                 return ret;
 //check capacity and reset
         //cw_capacity = reg_val[0];
-        cw_capacity = ret;
+       cw_capacity = reg_val[0];
+	//printk("+_+_+raw cw_capacity=%d\n",cw_capacity);
         if ((cw_capacity < 0) || (cw_capacity > 100)) {
                 dev_err(&cw_bat->client->dev, "get cw_capacity error; cw_capacity = %d\n", cw_capacity);
                 reset_loop++;
@@ -559,22 +579,26 @@ static int cw_get_vol(struct cw_battery *cw_bat)
         if (ret < 0)
                 return ret;
         //value16 = (reg_val[0] << 8) + reg_val[1];
-        value16 = ret;
-
+        //value16 = ret;
+        value16 = ((ret & 0x00ff) << 8) | (ret >> 8);
+		
        // ret = cw_read_word(cw_bat->client, REG_VCELL, reg_val);
-	ret = cw_read_word(cw_bat->client, REG_VCELL);
+	ret = cw_read_word(cw_bat->client, REG_VCELL);	
         if (ret < 0)
                 return ret;
         //value16_1 = (reg_val[0] << 8) + reg_val[1];
-        value16_1 = ret;
+       // value16_1 = ret;
+       value16_1 = ((ret & 0x00ff) << 8) | (ret >> 8);
 
        // ret = cw_read_word(cw_bat->client, REG_VCELL, reg_val);
        ret = cw_read_word(cw_bat->client, REG_VCELL);
         if (ret < 0)
                 return ret;
         value16_2 = (reg_val[0] << 8) + reg_val[1];
-	value16_2 = ret;
-
+	//printk("_+_+REG_VCELL=%x\n",ret);	
+	//value16_2 = ret;	
+	value16_2 = ((ret & 0x00ff) << 8) | (ret >> 8);
+		
 
         if(value16 > value16_1)
 	    {
@@ -650,11 +674,40 @@ static int cw_get_time_to_empty(struct cw_battery *cw_bat)
         return value16;
 }
 
+static int cw_bat_charge_full(void)
+{
+
+	if((read_power_item_value(POWER_STATE_CHARGE)) && \ 
+		(read_power_item_value(POWER_STATE_AC)))
+		return 1;
+	else
+		return 0;
+}
+
+static int cw_bat_charge_online(void)
+{
+
+	if(read_power_item_value(POWER_STATE_AC))
+		return 1;
+	else
+		return 0;
+}
+
 static void rk_bat_update_capacity(struct cw_battery *cw_bat)
 {
         int cw_capacity;
 
         cw_capacity = cw_get_capacity(cw_bat);
+	printk(KERN_DEBUG"_+_+_cw_capacity=%d\n",cw_capacity);
+
+	if(cw_bat_charge_online( ))
+	{
+		if((cw_capacity==100) && (!cw_bat_charge_full( )))
+		{
+			cw_capacity = 99;
+		}
+	}
+	
         if ((cw_capacity >= 0) && (cw_capacity <= 100) && (cw_bat->capacity != cw_capacity)) {
                 cw_bat->capacity = cw_capacity;
                 cw_bat->bat_change = 1;
@@ -853,7 +906,7 @@ static void cw_bat_work(struct work_struct *work)
         struct delayed_work *delay_work;
         struct cw_battery *cw_bat;
         int ret;
-
+	printk(KERN_DEBUG"_+_+_+%s_+_+_+\n",__func__);
         delay_work = container_of(work, struct delayed_work, work);
         cw_bat = container_of(delay_work, struct cw_battery, battery_delay_work);
 
@@ -881,9 +934,11 @@ static void cw_bat_work(struct work_struct *work)
                 power_supply_changed(&cw_bat->rk_bat);
                 cw_bat->bat_change = 0;
         }
-
-        queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->battery_delay_work, msecs_to_jiffies(1000));
-
+		
+	//wake_unlock(&cw_bat->bat_wake_lock);
+        //queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->battery_delay_work, msecs_to_jiffies(1000));
+        if(!cw_suspend_flag)
+	 	schedule_delayed_work(&cw_bat->battery_delay_work, msecs_to_jiffies(6000));
         dev_dbg(&cw_bat->client->dev, "cw_bat->bat_change = %d, cw_bat->time_to_empty = %d, cw_bat->capacity = %d, cw_bat->voltage = %d, cw_bat->dc_online = %d, cw_bat->usb_online = %d\n",\
                         cw_bat->bat_change, cw_bat->time_to_empty, cw_bat->capacity, cw_bat->voltage, cw_bat->dc_online, cw_bat->usb_online);
 }
@@ -1086,6 +1141,7 @@ static void dc_detect_do_wakeup(struct work_struct *work)
                 cw_bat->charger_init_mode=0;
 #endif
 
+#if 0
         irq = gpio_to_irq(cw_bat->plat_data->dc_det_pin);
         type = gpio_get_value(cw_bat->plat_data->dc_det_pin) ? IRQ_TYPE_EDGE_FALLING : IRQ_TYPE_EDGE_RISING;
         ret = irq_set_irq_type(irq, type);
@@ -1093,13 +1149,21 @@ static void dc_detect_do_wakeup(struct work_struct *work)
                 pr_err("%s: irq_set_irq_type(%d, %d) failed\n", __func__, irq, type);
         }
         enable_irq(irq);
+#endif
+	printk("_+_dc_detect_do_wakeup+_+\n");
+
 }
 
 static irqreturn_t dc_detect_irq_handler(int irq, void *dev_id)
 {
         struct cw_battery *cw_bat = dev_id;
-        disable_irq_nosync(irq); // for irq debounce
-        queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->dc_wakeup_work, msecs_to_jiffies(20));
+        //disable_irq_nosync(irq); // for irq debounce
+        //queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->dc_wakeup_work, msecs_to_jiffies(20));
+        schedule_delayed_work(&cw_bat->dc_wakeup_work, msecs_to_jiffies(20));
+		
+	if (delayed_work_pending(&cw_bat->battery_delay_work))
+		cancel_delayed_work_sync(&cw_bat->battery_delay_work);		
+	 schedule_delayed_work(&cw_bat->battery_delay_work, msecs_to_jiffies(20));
         return IRQ_HANDLED;
 }
 
@@ -1125,7 +1189,8 @@ static irqreturn_t bat_low_detect_irq_handler(int irq, void *dev_id)
         struct cw_battery *cw_bat = dev_id;
         // disable_irq_nosync(irq); // for irq debounce
         wake_lock_timeout(&bat_low_wakelock, WAKE_LOCK_TIMEOUT);
-        queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->bat_low_wakeup_work, msecs_to_jiffies(20));
+        //queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->bat_low_wakeup_work, msecs_to_jiffies(20));
+        schedule_delayed_work(&cw_bat->bat_low_wakeup_work, msecs_to_jiffies(20));
         return IRQ_HANDLED;
 }
 #endif
@@ -1137,6 +1202,7 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
         int irq;
         int irq_flags;
         int loop = 0;
+	 int gpio = 0;
 	printk("+_+_+cw_bat_probe_+_+_\n");
 
         cw_bat = kzalloc(sizeof(struct cw_battery), GFP_KERNEL);
@@ -1144,15 +1210,15 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
                 dev_err(&cw_bat->client->dev, "fail to allocate memory\n");
                 return -ENOMEM;
         }
-
+	printk("11111111\n");
         i2c_set_clientdata(client, cw_bat);
         cw_bat->plat_data = client->dev.platform_data;
-        ret = cw_bat_gpio_init(cw_bat);
-        if (ret) {
+        //ret = cw_bat_gpio_init(cw_bat);
+        if (0) {
                 dev_err(&cw_bat->client->dev, "cw_bat_gpio_init error\n");
                 return ret;
         }
-
+	printk("22222222\n");        
         cw_bat->client = client;
 
         ret = cw_init(cw_bat);
@@ -1184,7 +1250,7 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
                 dev_err(&cw_bat->client->dev, "power supply register rk_ac error\n");
                 goto rk_ac_register_fail;
         }
-
+#if 0
         cw_bat->rk_usb.name = "rk-usb";
         cw_bat->rk_usb.type = POWER_SUPPLY_TYPE_USB;
         cw_bat->rk_usb.properties = rk_usb_properties;
@@ -1195,6 +1261,7 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
                 dev_err(&cw_bat->client->dev, "power supply register rk_ac error\n");
                 goto rk_usb_register_fail;
         }
+#endif		
 	printk("5555555555\n");
         cw_bat->charger_init_mode = dwc_otg_check_dpdm();
 
@@ -1210,21 +1277,45 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
         cw_update_time_member_capacity_change(cw_bat);
         cw_update_time_member_charge_start(cw_bat);
 
-        cw_bat->battery_workqueue = create_singlethread_workqueue("rk_battery");
+        //cw_bat->battery_workqueue = create_singlethread_workqueue("rk_battery");
         INIT_DELAYED_WORK(&cw_bat->battery_delay_work, cw_bat_work);
         INIT_DELAYED_WORK(&cw_bat->dc_wakeup_work, dc_detect_do_wakeup);
-        queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->battery_delay_work, msecs_to_jiffies(10));
+        //queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->battery_delay_work, msecs_to_jiffies(10));
+        schedule_delayed_work(&cw_bat->battery_delay_work, msecs_to_jiffies(10));
 
+#if 1
         if (cw_bat->plat_data->dc_det_pin != INVALID_GPIO) {
+		  printk("cw_bat->plat_data->dc_det_pin register!!!!!!!\n");
                 irq = gpio_to_irq(cw_bat->plat_data->dc_det_pin);
+	#if 0			
                 irq_flags = gpio_get_value(cw_bat->plat_data->dc_det_pin) ? IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING;
                 ret = request_irq(irq, dc_detect_irq_handler, irq_flags, "usb_detect", cw_bat);
                 if (ret < 0) {
                         pr_err("%s: request_irq(%d) failed\n", __func__, irq);
                 }
-                enable_irq_wake(irq);
-        }
+	#else
 
+		gpio = cw_bat->plat_data->dc_det_pin;
+		gpio_free(gpio);
+		if (gpio_request(gpio, "CHG_INT")) {
+			pr_err("%s : CHG_INT request port erron", __func__);
+		} else {
+			s3c_gpio_cfgpin(gpio, S3C_GPIO_SFN(0xF));
+			s3c_gpio_setpull(gpio, S3C_GPIO_PULL_UP);
+			//gpio_free(gpio);
+		}
+		
+		ret = request_threaded_irq(irq, NULL, dc_detect_irq_handler,
+					  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING |
+					  IRQF_DISABLED | IRQF_ONESHOT,
+					  "dc_detect", cw_bat);
+	       if (ret < 0) {
+	               pr_err("%s: request_irq(%d) failed\n", __func__, irq);
+	       }	
+		#endif			
+	                //enable_irq_wake(irq);	//ericli remove for wakeup
+	        }
+#endif
 #ifdef BAT_LOW_INTERRUPT
         INIT_DELAYED_WORK(&cw_bat->bat_low_wakeup_work, bat_low_detect_do_wakeup);
         wake_lock_init(&bat_low_wakelock, WAKE_LOCK_SUSPEND, "bat_low_detect");
@@ -1264,7 +1355,10 @@ static int cw_bat_suspend(struct device *dev)
         struct i2c_client *client = to_i2c_client(dev);
         struct cw_battery *cw_bat = i2c_get_clientdata(client);
         dev_dbg(&cw_bat->client->dev, "%s\n", __func__);
-        cancel_delayed_work(&cw_bat->battery_delay_work);
+        printk("_+_+%s_+_+\n",__func__);
+        //cancel_delayed_work(&cw_bat->battery_delay_work);
+        cw_suspend_flag = 1;
+        cancel_delayed_work_sync(&cw_bat->battery_delay_work);
         return 0;
 }
 
@@ -1273,7 +1367,10 @@ static int cw_bat_resume(struct device *dev)
         struct i2c_client *client = to_i2c_client(dev);
         struct cw_battery *cw_bat = i2c_get_clientdata(client);
         dev_dbg(&cw_bat->client->dev, "%s\n", __func__);
-        queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->battery_delay_work, msecs_to_jiffies(100));
+	printk("_+_+%s_+_+\n",__func__);
+	cw_suspend_flag = 0;	
+        //queue_delayed_work(cw_bat->battery_workqueue, &cw_bat->battery_delay_work, msecs_to_jiffies(100));
+        schedule_delayed_work(&cw_bat->battery_delay_work, msecs_to_jiffies(50));
         return 0;
 }
 
