@@ -32,6 +32,8 @@
 
 #include <linux/regulator/consumer.h>
 
+#include <urbetter/check.h>
+
 #define CONFIG_GPIO_DEBUG
 
 #undef P_GPIO_DEBUG
@@ -864,7 +866,10 @@ static void power_gpio_on_boot(void)
 	power_gpio_input_init(); // first
 
 	write_power_item_value(POWER_SPK_EN, 0);
-	write_power_item_value(POWER_5V_EN, 1);
+	if(CHECK_UTMODEL("d721"))
+		write_power_item_value(POWER_5V_EN, 0);   // d721 power off 5V on boot
+	else
+		write_power_item_value(POWER_5V_EN, 1);
 
 	write_power_item_value(POWER_SCAN_EN, 1);
 
