@@ -28,6 +28,7 @@
 #include <mach/regs-clock.h>
 #include "gc2035.h"
 #include <linux/proc_fs.h>
+#include <linux/kernel.h>
 #ifdef CONFIG_VIDEO_SAMSUNG_V4L2
 #include <linux/videodev2_samsung.h>
 #endif
@@ -146,46 +147,15 @@ static int gc2035_reset(struct v4l2_subdev *sd)
 	return gc2035_init(sd, 0);
 }
 
-static int DDI_I2C_Read(struct v4l2_subdev *sd, unsigned short reg,unsigned char reg_bytes, 
-					unsigned char *val, unsigned char val_bytes)
-{
-	unsigned char data[2];
-	struct i2c_client *client = v4l2_get_subdevdata(sd);
-
-	if (reg_bytes == 2)
-	{
-		data[0] = reg >> 8;
-		data[1] = (u8) reg & 0xff;
-	}
-	else
-	{
-		data[0] = (u8) reg & 0xff;
-	}
-
-	if (i2c_master_send(client, data, reg_bytes) != reg_bytes)
-	{
-		printk("write error for read!!!! \n");
-		return -EIO;
-	}
-
-	if (i2c_master_recv(client, val, val_bytes) != val_bytes)
-	{
-		printk("read error!!!! \n");
-		return -EIO;
-	}
-
-	return 0;
-}
-
 /*
  * gc2035 register structure : 2bytes address, 2bytes value
  * retry on write failure up-to 5 times
  */
-static inline int gc2035_write(struct v4l2_subdev *sd, unsigned short addr, u8 val)
+static inline int gc2035_write(struct v4l2_subdev *sd, u8 addr, u8 val)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct i2c_msg msg;
-	unsigned char data[2] = { addr, val};
+	u8 data[2] = { addr, val};
 	int ret;
 
 	msg.addr = client->addr;
@@ -201,29 +171,13 @@ static inline int gc2035_write(struct v4l2_subdev *sd, unsigned short addr, u8 v
 }
 
 // This functin is used to init sensor.
-static int __gc2035_init_2bytes(struct v4l2_subdev *sd, unsigned short *reg[], int total)
+static int __gc2035_init_2bytes(struct v4l2_subdev *sd, const struct gc2035_reg *regs, int total)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int ret = -EINVAL, i;
-	unsigned short *item;
-	unsigned char bytes;
 
 	for (i = 0; i < total; i++)
-	{
-		item = (unsigned short *) &reg[i];
-
-		if (item[0] == REG_DELAY)
-		{	
-			mdelay(item[1]);
-			ret = 0;
-		}
-		else
-		{	
-			ret = gc2035_write(sd, item[0], item[1]);
-		}
-
-		
-	}
+		ret = gc2035_write(sd, regs[i].addr, regs[i].val);		
 	if (ret < 0)
 	v4l_info(client, "%s: register set failed\n", __func__);
 
@@ -251,16 +205,14 @@ static int gc2035_read(struct v4l2_subdev *sd, unsigned char addr)
 }
 
 
-static int gc2035_real_write_reg(struct v4l2_subdev *sd, unsigned short *reg[], int total)
+static int gc2035_real_write_reg(struct v4l2_subdev *sd, const struct gc2035_reg * regs, int total)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int ret = -EINVAL, i;
-	unsigned short *item;
 
 	for (i = 0; i < total; i++)
 	{
-		item = (unsigned short *) &reg[i];
-		ret = gc2035_write(sd, item[0], item[1]);
+		ret = gc2035_write(sd, regs[i].addr, regs[i].val);
 	//	msleep(20);
 	}
 
@@ -270,10 +222,10 @@ static int gc2035_real_write_reg(struct v4l2_subdev *sd, unsigned short *reg[], 
 }
 
 
-static int gc2035_i2c_write(struct v4l2_subdev *sd, unsigned char i2c_data[], unsigned char length)
+static int gc2035_i2c_write(struct v4l2_subdev *sd, uint8_t i2c_data[], unsigned char length)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-	unsigned char buf[length], i;
+	uint8_t buf[length], i;
 	struct i2c_msg msg = { client->addr, 0, length, buf };
 
 	for (i = 0; i < length; i++)
@@ -284,22 +236,6 @@ static int gc2035_i2c_write(struct v4l2_subdev *sd, unsigned char i2c_data[], un
 	return i2c_transfer(client->adapter, &msg, 1) == 1 ? 0 : -EIO;
 }
 
-//This function is used to set effection or AWB etc.
-static int gc2035_write_regs(struct v4l2_subdev *sd, unsigned char regs[], int size)
-{
-	struct i2c_client *client = v4l2_get_subdevdata(sd);
-	int i, err;
-	struct gc2035_reg *pReg = (struct gc2035_reg *)regs;
-
-	for (i = 0; i < size/sizeof(struct gc2035_reg); i++)
-	{
-		err = gc2035_i2c_write(sd, pReg+i, sizeof(struct gc2035_reg));
-		if (err < 0)
-			v4l_info(client, "%s: register set failed\n", __func__);
-	}
-
-	return 0;
-}
 
 static const char *gc2035_querymenu_wb_preset[] =
 { "WB Tungsten", "WB Fluorescent", "WB sunny", "WB cloudy", NULL };
@@ -468,17 +404,20 @@ static int gc2035_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *fmt)
 
 	if(1600==fmt->width&&(1200==fmt->height))
 	{	state->framesize_index=gc2035_CAPTURE_2MP;
- 		err = gc2035_real_write_reg(sd, (unsigned short **) gc2035_init_reg_1600_1200,gc2035_init_reg_1600_1200S);	
+		err = gc2035_real_write_reg(sd,  gc2035_init_reg_1600_1200,
+		                                   ARRY_SIZE(gc2035_init_reg_1600_1200));	
 	}
-/*	else if(1280==fmt->width&&(720==fmt->height))		
+	else if(1280==fmt->width&&(720==fmt->height))		
 	{	state->framesize_index=gc2035_CAPTURE_1MP;	
 		dbg_str("gc2035 720P set\n");
-		err = gc2035_real_write_reg(sd, (unsigned short **) gc2035_init_reg_1280_720,gc2035_init_reg_1280_720S);
-	} */
+		err = gc2035_real_write_reg(sd,  gc2035_init_reg_1280_720,
+			                              ARRY_SIZE(gc2035_init_reg_1280_720));
+	} 
 	else if(640==fmt->width&&(480==fmt->height))		
 	{	state->framesize_index=gc2035_CAPTURE_VGA;	
 		dbg_str("gc2035 30w set\n");
-		err = gc2035_real_write_reg(sd, (unsigned short **) gc2035_init_reg_640_480,gc2035_init_reg_640_480S);
+		err = gc2035_real_write_reg(sd, gc2035_init_reg_640_480,
+			                               ARRY_SIZE(gc2035_init_reg_640_480));
 	}
 	if (err < 0)
 		return -EINVAL;
@@ -628,7 +567,7 @@ static int gc2035_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 
 	return err;
 }
-#define ARRY_SIZE(A) (sizeof(A)/sizeof(A[0]))
+
 static int gc2035_set_wb(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 {
 	struct gc2035_state *state = to_state(sd);
@@ -666,15 +605,15 @@ static int gc2035_set_exposure(struct v4l2_subdev *sd, struct v4l2_control *ctrl
 	switch(value){
 		case 3:
 			printk("gc2035_set_exposure 3\n");
-			ret=gc2035_real_write_reg(sd, gc2035_ev_m3,ARRY_SIZE(gc2035_ev_m3));
+			ret=gc2035_real_write_reg(sd, gc2035_ev_p3,ARRY_SIZE(gc2035_ev_p3));
 			break;
 		case 2:
 			printk("gc2035_set_exposure 2\n");
-			ret=gc2035_real_write_reg(sd, gc2035_ev_m2,ARRY_SIZE(gc2035_ev_m2));
+			ret=gc2035_real_write_reg(sd, gc2035_ev_p2,ARRY_SIZE(gc2035_ev_p2));
 			break;
 		case 1:
 			printk("gc2035_set_exposure 1\n");
-			ret=gc2035_real_write_reg(sd, gc2035_ev_m1,ARRY_SIZE(gc2035_ev_m1));
+			ret=gc2035_real_write_reg(sd, gc2035_ev_p1,ARRY_SIZE(gc2035_ev_p1));
 			break;
 		case 0:
 			printk("gc2035_set_exposure 0\n");
@@ -682,15 +621,15 @@ static int gc2035_set_exposure(struct v4l2_subdev *sd, struct v4l2_control *ctrl
 			break;
 		case -1:
 			printk("gc2035_set_exposure -1\n");
-			ret=gc2035_real_write_reg(sd, gc2035_ev_p1,ARRY_SIZE(gc2035_ev_p1));
+			ret=gc2035_real_write_reg(sd, gc2035_ev_m1,ARRY_SIZE(gc2035_ev_m1));
 			break;
 		case -2:
 			printk("gc2035_set_exposure -2\n");
-			ret=gc2035_real_write_reg(sd, gc2035_ev_p2,ARRY_SIZE(gc2035_ev_p2));
+			ret=gc2035_real_write_reg(sd, gc2035_ev_m2,ARRY_SIZE(gc2035_ev_m2));
 			break;
 		case -3:
 			printk("gc2035_set_exposure -3\n");
-			ret=gc2035_real_write_reg(sd, gc2035_ev_p3,ARRY_SIZE(gc2035_ev_p3));
+			ret=gc2035_real_write_reg(sd, gc2035_ev_m3,ARRY_SIZE(gc2035_ev_m3));
 			break;
 		default:
 			printk("%s:default \n",__func__);
@@ -699,7 +638,6 @@ static int gc2035_set_exposure(struct v4l2_subdev *sd, struct v4l2_control *ctrl
 	if(ret==0){
 		state->userset.exposure_bias=value;
 	}
-	printk("%s:reg[56]=0x%02x,reg[55]=0x%02x\n",__func__,gc2035_read(sd,0x56),gc2035_read(sd,0x55)); 
 	return ret;
 }
 
@@ -797,7 +735,7 @@ static int gc2035_init(struct v4l2_subdev *sd, u32 val)
 		return -ENODEV;
 	}
 
-	err = __gc2035_init_2bytes(sd, (unsigned short **) gc2035_init_reg,gc2035_INIT_REGS);
+	err = __gc2035_init_2bytes(sd, gc2035_init_reg,ARRY_SIZE(gc2035_init_reg));
 
 	if (err < 0)
 	{		
@@ -862,7 +800,7 @@ static int gc2035_s_config(struct v4l2_subdev *sd, int irq, void *platform_data)
 
 static int gc2035_s_stream(struct v4l2_subdev *sd, int enable)
 {
-	printk("====gc2035_s_stream on=%d ======== \n",__func__,enable);
+	printk("====%s on=%d ======== \n",__func__,enable);
 	return 0;
 }
 
@@ -899,10 +837,9 @@ static struct v4l2_subdev *SD;
 static int i2c_proc_write(struct file *file, const char *buffer,
                            unsigned long count, void *data)
 {
-	unsigned int value, reg; 
-	value = 0;
-	reg = 0;
-	unsigned char wd[2];
+	u8 value=0;
+	u8 reg=0; 
+	u8 wd[2];
 
 	if(!SD) {
 		printk("[OV5645] Please open camera first\n");
@@ -939,6 +876,10 @@ static void gc2035_init_proc_node(void)
 	struct proc_dir_entry *root_entry;
 	struct proc_dir_entry *entry;
 
+	static int is_init=0;
+
+	if(is_init)
+		return;
 
 	printk("%s\n", __FUNCTION__);
 	root_entry = proc_mkdir("gc2035", NULL);
@@ -948,6 +889,7 @@ static void gc2035_init_proc_node(void)
 		entry->write_proc = i2c_proc_write;
 		entry->read_proc = i2c_proc_read;
 	}
+	is_init=1;
 }
 static int gc2035_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)

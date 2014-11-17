@@ -1,82 +1,17 @@
-/* linux/drivers/media/video/gc2035.h  <---  hi253
- *
- * Copyright (c) 2010 Samsung Electronics Co., Ltd.
- *	         http://www.samsung.com/
- *
- * Driver for gc2035 (UXGA camera) from Samsung Electronics
- * 1/4" 2.0Mp CMOS Image Sensor SoC with an Embedded Image Processor
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
-
 #ifndef __GC2035_H__
 #define __GC2035_H__
 
-#define HM2056_TABLE_END 0xFFFE
-#define HM5056_TABLE_END HM2056_TABLE_END
 
 struct gc2035_reg {
-	unsigned short addr;
-	unsigned char val;
+	u8 addr;
+	u8 val; 
+
 };
 
-struct gc2035_regset_type {
-	unsigned char *regset;
-	int len;
-};
-
-/*
- * Macro
- */
-#define REGSET_LENGTH(x)	(sizeof(x)/sizeof(gc2035_reg))
-
-/*
- * User defined commands
- */
-/* S/W defined features for tune */
-#define REG_DELAY	0x0000	/* in ms */
-#define REG_CMD		0xFFFF	/* Followed by command */
-#define REG_ID		0x8899	/* Followed by command */
+#define ARRY_SIZE(A) (sizeof(A)/sizeof(A[0]))
 
 
-/* Following order should not be changed */
-enum image_size_gc2035 {
-	/* This SoC supports upto UXGA (1600*1200) */
-	QQVGA,	/* 160*120 */
-	QCIF,	/* 176*144 */
-	QVGA,	/* 320*240 */
-	CIF,	/* 352*288 */
-	VGA,	/* 640*480 */
-	SVGA,	/* 800*600 */
-	HD720P,	/* 1280*720 */
-	SXGA,	/* 1280*1024 */
-	UXGA,	/* 1600*1200 */
-};
-
-/*
- * Following values describe controls of camera
- * in user aspect and must be match with index of gc2035_regset[]
- * These values indicates each controls and should be used
- * to control each control
- */
-enum gc2035_control {
-	gc2035_INIT,
-	gc2035_EV,
-	gc2035_AWB,
-	gc2035_MWB,
-	gc2035_EFFECT,
-	gc2035_CONTRAST,
-	gc2035_SATURATION,
-	gc2035_SHARPNESS,
-};
-
-#define gc2035_REGSET(x)	{	\
-	.regset = x,			\
-	.len = sizeof(x)/sizeof(gc2035_reg),}
-
-static unsigned short  gc2035_init_reg_640_480[][2] = {
+static const struct gc2035_reg  gc2035_init_reg_640_480[]  = {
 	{0xfe , 0x00},
 	{0xb6 , 0x03},
 	{0xfa , 0x00},
@@ -105,13 +40,67 @@ static unsigned short  gc2035_init_reg_640_480[][2] = {
 	{0x96 , 0xe2},
 	{0x97 , 0x02},
 	{0x98 , 0x82},
-	{HM2056_TABLE_END, 0x00}
+//	{HM2056_TABLE_END, 0x00}
 };
-#define gc2035_init_reg_640_480S	\
-	(sizeof(gc2035_init_reg_640_480) / sizeof(gc2035_init_reg_640_480[0]))
+
+static const struct gc2035_reg  gc2035_init_reg_1280_720[]  = {
+/*	{0xfe , 0x00},
+	{0xb6 , 0x03},
+	{0xfa , 0x00},
+
+	{0x86 , 0x07}, //02 //sync plority 
+
+	{0xc8 , 0x00},//close scaler
+	{0x99 , 0x55},// 1/2 subsample
+	{0x9a , 0x06},
+	{0x9b , 0x00},
+	{0x9c , 0x00},
+	{0x9d , 0x01},
+	{0x9e , 0x23},
+	{0x9f , 0x00},
+	{0xa0 , 0x00},  
+	{0xa1 , 0x01},
+	{0xa2 , 0x23},
+	
+	{0x90 , 0x01},  //crop enable
+	{0x94 , 0x00},
+	//{0x95 , 0x02},//800x600
+	//{0x96 , 0x58},
+	//{0x97 , 0x03},
+	//{0x98 , 0x20},
+	{0x95 , 0x02},//640x480
+	{0x96 , 0xd2},
+	{0x97 , 0x05},
+	{0x98 , 0x02},
+	{HM2056_TABLE_END, 0x00}  */
+
+	{0xfe , 0x00},
+	{0xc8 , 0x00},
+	{0xfa , 0x00},
+
+	{0x86 , 0x87}, //02 //sync plority 
 
 
-static unsigned short  gc2035_init_reg_1600_1200[][2] = {
+	{0x99 , 0x11}, // disable sambsample
+	{0x9a , 0x06},
+	{0x9b , 0x00},
+	{0x9c , 0x00},
+	{0x9d , 0x00},
+	{0x9e , 0x00},
+	{0x9f , 0x00},
+	{0xa0 , 0x00},  
+	{0xa1 , 0x00},
+	{0xa2 , 0x00},
+	        
+	{0x90 , 0x01},
+	{0x95 , 0x02},
+	{0x96 , 0xd2},  
+	{0x97 , 0x05},
+	{0x98 , 0x02},
+
+};
+
+static const struct gc2035_reg  gc2035_init_reg_1600_1200[]  = {
 
 	{0xfe , 0x00},
 	{0xc8 , 0x00},
@@ -137,16 +126,13 @@ static unsigned short  gc2035_init_reg_1600_1200[][2] = {
 	{0x97 , 0x06},
 	{0x98 , 0x42},
 
-	{HM2056_TABLE_END, 0x00}
 };
 
-#define gc2035_init_reg_1600_1200S	\
-	(sizeof(gc2035_init_reg_1600_1200) / sizeof(gc2035_init_reg_1600_1200[0]))
 /*
  * User tuned register setting values
  */
 
-static unsigned short  gc2035_init_reg[][2] = {
+static const struct gc2035_reg  gc2035_init_reg[]  = {
 
 	{0xfe , 0x80},
 	{0xfe , 0x80},
@@ -779,8 +765,6 @@ static unsigned short  gc2035_init_reg[][2] = {
 	{0xf4 , 0x00},
 	{0xf5 , 0x30},
 	
-	  #if 1   
-        /////////  re zao///
 	{0xfe,0x00},
 	{0x22,0xd0},
 	{0xfe,0x01},
@@ -800,31 +784,7 @@ static unsigned short  gc2035_init_reg[][2] = {
 	{0xfe,0x00},  
 	{0x87,0xb0},
 
-    //// small  RGB gamma////
-    /*
-	{0xfe , 0x02},
-	{0x15 , 0x0b},
-	{0x16 , 0x0e},
-	{0x17 , 0x10},
-	{0x18 , 0x12},
-	{0x19 , 0x19},
-	{0x1a , 0x21},
-	{0x1b , 0x29},
-	{0x1c , 0x31},
-	{0x1d , 0x41},
-	{0x1e , 0x50},
-	{0x1f , 0x5f},
-	{0x20 , 0x6d},
-	{0x21 , 0x79},
-	{0x22 , 0x91},
-	{0x23 , 0xa5},
-	{0x24 , 0xb9},
-	{0x25 , 0xc9},
-	{0x26 , 0xe1},
-	{0x27 , 0xee},
-	{0x28 , 0xf7},
-	{0x29 , 0xff},
-	*/
+ 
  	////dark sun/////
 	{0xfe , 0x02},
 	{0x40 , 0x06},
@@ -835,120 +795,56 @@ static unsigned short  gc2035_init_reg[][2] = {
 	{0x45 , 0x00},
 	{0x46 , 0x14},
 	{0x47 , 0x09}, 
+  
+	{0xfe , 0x00},
 
-	  
-	  {0xfe , 0x00},
-  #endif
-	{HM2056_TABLE_END, 0x00}
 };
 
-
-#define gc2035_INIT_REGS	\
-	(sizeof(gc2035_init_reg) / sizeof(gc2035_init_reg[0]))
 
 /*
  * EV bias --- exposure --- Brightness
  */
 
-static const struct gc2035_reg gc2035_ev_m6[] = {
-
-	{0xfe, 0x01},
-	{0x13, 0x58},
-	{0xfe, 0x02},
-	{0xd5, 0xc0},
-    {0xfe, 0x00}
-};
-
-static const struct gc2035_reg gc2035_ev_m5[] = {
-
-	{0xfe, 0x01},
-	{0x13, 0x60},
-	{0xfe, 0x02},
-	{0xd5, 0xd0},
-    {0xfe, 0x00}
-};
-
-static const struct gc2035_reg gc2035_ev_m4[] = {
-
-	{0xfe, 0x01},
-	{0x13, 0x68},
-	{0xfe, 0x02},
-	{0xd5, 0xd8},
-    {0xfe, 0x00}
-};
 
 static const struct gc2035_reg gc2035_ev_m3[] = {
 
 	{0xfe, 0x01},
-	{0x13, 0x70},
-	{0xfe, 0x02},
-	{0xd5, 0xe0},
-    {0xfe, 0x00}
+	{0x13, 0x50},
+	{0xfe, 0x00},
 };
-/*
-static unsigned char gc0328_exposure_0[][2] = {
- 
-	{0xfe,0x01},
-	{0x13,0x60},
-	{0xfe,0x00}, 
-  	{0x00,0x00},
-};
-*/
 
-static unsigned char gc2035_ev_m2[][2] = {  //  -4
+static const struct gc2035_reg gc2035_ev_m2[]  = {  //  -4
 
 	{0xfe, 0x01},
 	{0x13, 0x60},
-	{0xfe, 0x02},
-	{0xd5, 0xd0},
-    {0xfe, 0x00},
-    
-	{0x00, 0x00},
+	{0xfe, 0x00},
 };
 
-static unsigned char gc2035_ev_m1[][2] = {  //  -2
+static const struct gc2035_reg gc2035_ev_m1[]  = {  //  -2
 
 	{0xfe, 0x01},
 	{0x13, 0x70},
-	{0xfe, 0x02},
-	{0xd5, 0xf0},
-    {0xfe, 0x00},
-    
-	{0x00, 0x00},
+	{0xfe, 0x00},
 };
 
-static unsigned char gc2035_ev_default[][2] = {   //  0
-    //  Brightness 0
+static const struct gc2035_reg gc2035_ev_default[]  = {   //  0
+	{0xfe, 0x01},
+	{0x13, 0x80},
+    	{0xfe, 0x00},
+};
+
+static const struct gc2035_reg gc2035_ev_p1[]  = {  // 2
 
 	{0xfe, 0x01},
-	{0x13, 0x88},
-	{0xfe, 0x02},
-	{0xd5, 0x00},
-    {0xfe, 0x00},
-    
-	{0x00, 0x00},
+	{0x13, 0x90},
+	{0xfe, 0x00},
 };
 
-static unsigned char gc2035_ev_p1[][2] = {  // 2
-
-	{0xfe, 0x01},
-	{0x13, 0xa0},
-	{0xfe, 0x02},
-	{0xd5, 0x20},
-    {0xfe, 0x00},
-    
-	{0x00, 0x00},
-};
-
-static unsigned char gc2035_ev_p2[][2] = {  //  4
+static const struct gc2035_reg gc2035_ev_p2[]  = {  //  4
  
 	{0xfe, 0x01},
-	{0x13, 0xc0},
-	{0xfe, 0x02},
-	{0xd5, 0x40},
-    {0xfe, 0x00},
-    
-	{0x00, 0x00},
+	{0x13, 0xa0},
+	{0xfe, 0x00},
 };
 
 
@@ -956,122 +852,68 @@ static unsigned char gc2035_ev_p2[][2] = {  //  4
 static const struct gc2035_reg gc2035_ev_p3[] = {
 
 	{0xfe, 0x01},
-	{0x13, 0xa0},
-	{0xfe, 0x02},
-	{0xd5, 0x30},
-    {0xfe, 0x00}
-};
-
-static const struct gc2035_reg gc2035_ev_p4[] = {
-
-	{0xfe, 0x01},
-	{0x13, 0xa8},
-	{0xfe, 0x02},
-	{0xd5, 0x40},
-    {0xfe, 0x00}
-};
-
-static const struct gc2035_reg gc2035_ev_p5[] = {
-
-	{0xfe, 0x01},
 	{0x13, 0xb0},
-	{0xfe, 0x02},
-	{0xd5, 0x50},
-    {0xfe, 0x00}
+	{0xfe, 0x00},
 };
 
-static const struct gc2035_reg gc2035_ev_p6[] = {
-
-	{0xfe, 0x01},
-	{0x13, 0xb8},
-	{0xfe, 0x02},
-	{0xd5, 0x60},
-    {0xfe, 0x00}
-};
-
-
-/*
- * Auto White Balance configure
- */
-static const struct gc2035_reg gc2035_awb_off[] = {
-
-};
-
-static const struct gc2035_reg gc2035_awb_on[] = {
-	//    {0xfe, 0x00},
-	//    {0x82, 0xfc},
-};
-
-static const unsigned char *gc2035_regs_awb_enable[] = {
-	(unsigned char *)gc2035_awb_off,
-	(unsigned char *)gc2035_awb_on,
-};
 
 /*
  * Manual White Balance (presets)
  */
-static unsigned char gc2035_wb_auto[][3] = {
-		{0xfe, 0x00},
-		{0xb3, 0x60},//40
-		{0xb4, 0x40},//4
-		{0xb5, 0x60},//f0
+
+
+static const struct gc2035_reg gc2035_wb_auto[]  = {
 		
+		
+		{0xb3, 0x61},//40
+		{0xb4, 0x40},//4
+		{0xb5, 0x61},//f0
+		
+		{0xfe, 0x00},
 		{0x82, 0xfe},
-		
-		{0x00, 0x00},
 };
 
-static unsigned char gc2035_wb_tungsten[][3] = {
+static const struct gc2035_reg gc2035_wb_tungsten[]  = {
 		{0xfe, 0x00},
 		
 	    {0x82, 0xfc},
-		{0xb3, 0x50},//40
-		{0xb4, 0x40},//4
-		{0xb5, 0xc8},//  c8  f0
-		
-		{0x00, 0x00},
+		{0xb3, 0xa0},//40
+		{0xb4, 0x45},//4
+		{0xb5, 0x40},//  c8  f0
+
 };
 
-static unsigned char gc2035_wb_fluorescent[][3] = {
+static const struct gc2035_reg gc2035_wb_fluorescent[]  = {
 		{0xfe, 0x00},
 			
 	    {0x82, 0xfc},
-		{0xb3, 0x80},//  a0   58
-		{0xb4, 0x45},//40
-		{0xb5, 0x40},//90
-		
-		{0x00, 0x00},
+		{0xb3, 0x72},//  a0   58
+		{0xb4, 0x40},//40
+		{0xb5, 0x5b},//90
+
 };
 
-static unsigned char gc2035_wb_sunny[][3] = {
+static const struct gc2035_reg gc2035_wb_sunny[]  = {
 		{0xfe, 0x00},
 			
 	    {0x82, 0xfc},
-		{0xb3, 0x90},//94
-		{0xb4, 0x58},//58
-		{0xb5, 0x60},//68
-		
-		{0x00, 0x00},
+		{0xb3, 0x70},//94
+		{0xb4, 0x40},//58
+		{0xb5, 0x50},//68
+
 };
 
-static unsigned char gc2035_wb_cloudy[][3] = { // 
+static const struct gc2035_reg gc2035_wb_cloudy[]  = { // 
 		{0xfe, 0x00},
 			
 	    {0x82, 0xfc},
 		{0xb3, 0x58},//88
 		{0xb4, 0x40},//44
 		{0xb5, 0x50},//40
-		
-		{0x00, 0x00},
+
 };
 
-/* Order of this array should be following the querymenu data */
-static const unsigned char *gc2035_regs_wb_preset[] = {
-	(unsigned char *)gc2035_wb_sunny,
-	(unsigned char *)gc2035_wb_cloudy,
-	(unsigned char *)gc2035_wb_tungsten,
-	(unsigned char *)gc2035_wb_fluorescent,
-};
+
 
 /*
  * Color Effect (COLORFX)
