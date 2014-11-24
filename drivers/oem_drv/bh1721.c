@@ -24,7 +24,7 @@
 #endif
 
 #define BH1721_DEBUG
-//#undef BH1721_DEBUG
+#undef BH1721_DEBUG
 
 #ifdef BH1721_DEBUG
 	#define dprintk(x...) printk(x) 
