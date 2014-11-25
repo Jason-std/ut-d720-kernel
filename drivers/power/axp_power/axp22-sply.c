@@ -53,7 +53,10 @@
 #include <plat/gpio-cfg.h>
 #include <mach/regs-gpio.h>
 
+extern bool ut_battery_init;
+extern int  axp_capacity;
 extern char g_selected_utmodel[32];
+
 
 #define DBG_AXP_PSY 0
 #if  DBG_AXP_PSY
@@ -84,7 +87,6 @@ static int bat_rdc = 0;
 #ifdef CONFIG_UT_ADC_BATTERY
 int axp_charger_status;
 int axp_battery_status;
-extern int ut_adc_init_flag;
 extern int ut_adc_bat_get_value(void);
 extern int ut_adc_bat_get_vol(void);
 #endif
@@ -632,14 +634,10 @@ static int axp_battery_get_property(struct power_supply *psy,
   //  DBG_PSY_MSG("POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:%d\n",val->intval);
        break;
   case POWER_SUPPLY_PROP_CAPACITY:
-#ifdef CONFIG_UT_ADC_BATTERY
-	if(ut_adc_init_flag)
-		val->intval = ut_adc_bat_get_value( );
+	if(ut_battery_init)
+		val->intval = axp_capacity;//get the capacity from ut_battery
 	else
 		val->intval = charger->rest_vol;
-#else
-    val->intval = charger->rest_vol;
-#endif
     break;
 /*  case POWER_SUPPLY_PROP_TIME_TO_EMPTY_NOW:
     if(charger->bat_det && !(charger->is_on) && !(charger->ext_valid))

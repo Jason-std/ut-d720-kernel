@@ -13,7 +13,8 @@ obj-$(CONFIG_URBETTER_SIM_DETECT)            += sim_detect.o
 
 obj-$(CONFIG_URBETTER_POWER_GPIO)            += power_gpio.o
 
-obj-$(CONFIG_URBETTER_BATTERY)		       += battery.o
+##obj-$(CONFIG_URBETTER_BATTERY)		       += battery.o
+obj-$(CONFIG_URBETTER_BATTERY)		       += ut_battery.o
 
 obj-$(CONFIG_URBETTER_GSENEOR_MMA7660)   += mma7660.o
 
