@@ -521,7 +521,20 @@ struct platform_device exynos_device_md0 = {
 	.id = -1,
 };
 #endif
+static struct i2c_gpio_platform_data gpio_i2c3_data = {	
+	.sda_pin            = EXYNOS4_GPA1(2), // f0_0	
+	.scl_pin            = EXYNOS4_GPA1(3),  // f0_1		
+	.udelay             = 2,	
+	.sda_is_open_drain  = 0,  // 0  // must mod	
+	.scl_is_open_drain  = 0,  //  0  	
+	.scl_is_output_only = 0,
+};
 
+struct platform_device gpio_i2c3_dev = {	
+	.name               = "i2c-gpio",	
+		.id                 = 3,	
+		.dev.platform_data  = &gpio_i2c3_data,
+};
 
 //add by jerry
 #ifdef CONFIG_VIDEO_UTCAMERA
@@ -537,6 +550,7 @@ static struct i2c_board_info ut2055_i2c_info = {
 	I2C_BOARD_INFO("UT2055", 0x24),
 	.platform_data = &ut2055_plat,
 };
+
 
 static struct s3c_platform_camera ut2055 = {
 #if 0
@@ -3137,7 +3151,8 @@ static struct platform_device *smdk4x12_devices[] __initdata = {
 	&s3c_device_i2c0,
 //	&s3c_device_i2c1,
 	&s3c_device_i2c2,
-	&s3c_device_i2c3,
+//	&s3c_device_i2c3,
+	&gpio_i2c3_dev,
 	&s3c_device_i2c4,
 	&s3c_device_i2c5,
 #if 1// i2c6
