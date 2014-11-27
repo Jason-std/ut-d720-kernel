@@ -128,6 +128,8 @@ unsigned int  capacity_updata;
 #define BAT_DDM                3
 #define BAT_EUP8092            4
 #define BAT_AUG646             5
+#define BAT_WKY853             6
+
 
 //#define model_710              
 
@@ -214,6 +216,19 @@ static struct batt_vol_cal  batt_table_d720[] = {     //BAT_AUG646
 	{82,3850,4062}, 
 	{91,3935,4142}, 
  	{100,3960,4160},	
+}; 
+
+static struct batt_vol_cal  batt_table_d721[] = {     //BAT_WKY853
+
+	{0	,3514,3734}, 
+	{16 ,3566,3798}, 
+	{28 ,3596,3900}, 
+	{40 ,3634,3942}, 
+	{52 ,3686,3968}, 
+	{64 ,3748,4028}, 
+	{76 ,3828,4110}, 
+	{88 ,3927,4174}, 
+	{100,4012,4212}, 
 }; 
 
 
@@ -337,9 +352,10 @@ static void samsung_adc_battery_put_capacity(int loadcapacity)
 static int samsung_adc_battery_get_charge_level(struct samsung_adc_battery_data *bat)
 {
 	int charge_on = 0;
-	//printk("**11**POWER_STATE_AC = %d\n",read_power_item_value(POWER_STATE_AC));
-		if ( read_power_item_value(POWER_STATE_AC)){ 
-			//printk("**22**POWER_STATE_AC = %d\n",read_power_item_value(POWER_STATE_AC));
+	//printk("**22**POWER_STATE_AC = %d\n",gpio_get_value(EXYNOS4_GPX3(4)));
+		if ( gpio_get_value(EXYNOS4_GPX3(4))){ // 
+		//if ( read_power_item_value(EXYNOS4_GPX3(4))){ //changed for d721
+			
 			charge_on = 1;
 		}
 
@@ -515,7 +531,7 @@ static void samsung_adc_battery_voltage_samples(struct samsung_adc_battery_data 
 
 	   else if(s_model == 720 && bat_model == BAT_AUG646) 
 	{
-		  // printk("***smod----720  BAT_AUG646\n");
+		   //printk("***smod----720  BAT_AUG646\n");
 	
 			 BATT_NUM=ARRAY_SIZE(batt_table_d720);
 	 
@@ -532,9 +548,33 @@ static void samsung_adc_battery_voltage_samples(struct samsung_adc_battery_data 
 					 bat->bat_voltage =  batt_table_d720[0].dis_charge_vol - 10;
 				 //printk("---%s---%d\n",__func__,__LINE__);
 			 }
+		
+	}
+
+	   else if(s_model == 721 && bat_model == BAT_WKY853) 
+	{
+		 //  printk("***smod----721  BAT_WKY853 level = %d\n",level);
+	
+			 BATT_NUM=ARRAY_SIZE(batt_table_d721);
+	 
+			 if(1 == level){//**charge
+			 if(bat->bat_voltage >= batt_table_d721[BATT_NUM-1].charge_vol+ 10)
+					 bat->bat_voltage = batt_table_d721[BATT_NUM-1].charge_vol	+ 10;
+			 else if(bat->bat_voltage <= batt_table_d721[0].charge_vol	- 10)
+				 bat->bat_voltage =  batt_table_d721[0].charge_vol - 10;
+			 }
+			 else{// discharge*
+				 if(bat->bat_voltage >= batt_table_d721[BATT_NUM-1].dis_charge_vol+ 10)
+					 bat->bat_voltage = batt_table_d721[BATT_NUM-1].dis_charge_vol	+ 10;
+				 else if(bat->bat_voltage <= batt_table_d721[0].dis_charge_vol	- 10)
+					 bat->bat_voltage =  batt_table_d721[0].dis_charge_vol - 10;
+				 //printk("---%s---%d\n",__func__,__LINE__);
+			 }
 	
 	
 	}
+
+
 
 	else if(s_model == 902 && bat_model == BAT_W122P)  
 	{
@@ -635,6 +675,12 @@ static int samsung_adc_battery_voltage_to_capacity(struct samsung_adc_battery_da
 			//printk("***batt_table_s706--%s---%d\n",__func__,__LINE__);
 		}
 
+	else if(s_model == 721 && bat_model == BAT_WKY853)  
+		{
+			p = batt_table_d721;
+			BATT_NUM=ARRAY_SIZE(batt_table_d721);
+			//printk("***batt_table_s706--%s---%d\n",__func__,__LINE__);
+		}
 
 	else if(s_model == 902 && bat_model == BAT_W122P)  
 		{
@@ -698,7 +744,7 @@ static int samsung_adc_battery_voltage_to_capacity(struct samsung_adc_battery_da
 
 
 	}
-     //printk("*********samsung_adc_battery_voltage_to_capacity  capacity=%d*************\n",capacity);
+     //printk("*********samsung_adc_battery_voltage_to_capacity  axp_capacity = %d*************\n",capacity);
 	 axp_capacity = capacity; //send a val to axp 
     return capacity;
 }
@@ -1207,6 +1253,12 @@ static void check_model(void)/////
 		s_model       = 720 ;
 	}
 
+	else if(strncmp(g_selected_utmodel, "d721", strlen("d721")) == 0)	
+
+	{
+		printk("g_selected_utmodel :d721\n");
+		s_model       = 721 ;
+	}
 
 	else if(strncmp(g_selected_utmodel, "s902", strlen("s902")) == 0)	
 
@@ -1224,6 +1276,14 @@ static void check_model(void)/////
 		{
 			printk("BAT MODE :EUP8092\n");
 			bat_model = BAT_EUP8092;
+			//printk("---%s---%d\n",__func__,__LINE__);
+		}
+
+		
+	    else  if(strncmp(g_selected_battery,"BAT_WKY853",strlen("BAT_WKY853")) == 0)//***??
+		{
+			printk("BAT MODE :BAT_WKY853\n");
+			bat_model = BAT_WKY853;
 			//printk("---%s---%d\n",__func__,__LINE__);
 		}
 		
@@ -1270,6 +1330,14 @@ static void check_model(void)/////
 			BATT_ZERO_VOL_VALUE = 3378; 
 		}
 
+
+		else if(s_model   ==  721 &&bat_model == BAT_WKY853)//***´ý²â
+		{
+			BATT_MAX_VOL_VALUE	 = 4012;
+			BATT_ZERO_VOL_VALUE = 3514; 
+		}
+
+
 		else if(s_model   ==  1101 &&bat_model ==BAT_DDM)
 		{
 		 	BATT_MAX_VOL_VALUE   = 4100;
@@ -1290,7 +1358,7 @@ static int samsung_adc_battery_probe(struct platform_device *pdev)
 {
 	int tmp = 0;
 	struct samsung_adc_battery_data          *data;
-    printk("***samsung_adc_battery probe~~\n");
+   // printk("***samsung_adc_battery probe~~\n");
 
 
 	check_model();

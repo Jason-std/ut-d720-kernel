@@ -634,8 +634,9 @@ static int axp_battery_get_property(struct power_supply *psy,
   //  DBG_PSY_MSG("POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:%d\n",val->intval);
        break;
   case POWER_SUPPLY_PROP_CAPACITY:
-	if(ut_battery_init)
+	if(ut_battery_init){
 		val->intval = axp_capacity;//get the capacity from ut_battery
+	}
 	else
 		val->intval = charger->rest_vol;
     break;
@@ -1496,6 +1497,7 @@ static void axp_charging_monitor(struct work_struct *work)
 	}
 #endif
 	/* if battery volume changed, inform uevent */
+printk(">>> axp_update charger->rest_vol - pre_rest_vol = %d,bat_current_direction=%d,pre_bat_curr_dir=%d\n",charger->rest_vol - pre_rest_vol,charger->bat_current_direction,pre_bat_curr_dir);
 	if((charger->rest_vol - pre_rest_vol) || (charger->bat_current_direction != pre_bat_curr_dir)){
 		if(axp_debug)
 			{
