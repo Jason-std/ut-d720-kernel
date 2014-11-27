@@ -25,22 +25,7 @@ static struct ts_info * ts_object = NULL;
 static struct chip_cmd (*chip) = NULL;
 
 
-//static unsigned char binary_data_s1003[] = {
-//#include "dzh692yjht01_CT363_01_V04_020A_140103.dat"
-//};
-//
-//static unsigned char binary_data_s7801[] = {
-////#include "dzh1684yjht01_CT362_01_V05_FECA_140103.dat"
-//#include "dzh1684yjht01_CT362_01_V09_F5B9_140113.dat"
-//};
-//
-//static unsigned char binary_data_s9702[] = {
-//#include "dzh971726_CT363_01_V02_D65A_140102.dat"
-//};
-//
-//static unsigned char binary_data_s8001[] = {
-//#include "dzh801730_CT362_01_V03_F5AE_140103.dat"
-//};
+static unsigned char	chipidflag;
 
 static unsigned char binary_data_d816[] = {
 #include "dzh801939yj01_CT363_01_V01_D76B_140423.dat"
@@ -50,6 +35,9 @@ static unsigned char binary_data_d720[] = {
 };
 static unsigned char binary_data_d721[] = {
 #include "dzh702099yj721_CT362_01_V01_FB14_140702.dat"
+};
+static unsigned char binary_data_s106[] = {
+#include "yj01CG10322_CT363M_0X01_V01_ID17_FAB0_141126.dat"
 };
 enum cmd_index {
 
@@ -90,6 +78,23 @@ static struct chip_cmd ct36x_cmd[] = {
 	{0x8e0e,RW_FLAG},	//fw checksum val
 
 	{0x8fff,0xaf},		//chip sleep cmd
+
+	{0xf000,RW_FLAG},	//chip id cmd
+
+	/************flash*************/
+	{0x30,RW_FLAG},		//FLASH_SECTOR_ERASE_CMD
+	{256,RW_FLAG},		//FLASH_SECTOR_NUM
+	{128,RW_FLAG},		//FLASH_SECTOR_SIZE
+	{0x33,RW_FLAG},		//FLASH_MASS_ERASE_CMD
+};
+
+static struct chip_cmd ct363M_cmd[] = {
+	{0x6B78,RW_FLAG}, 	//fw version
+
+	{0x6fff,0xe1},		//fw checksum cmd
+	{0x6e0e,RW_FLAG},	//fw checksum val
+
+	{0x6fff,0xaf},		//chip sleep cmd
 
 	{0xf000,RW_FLAG},	//chip id cmd
 
@@ -410,6 +415,8 @@ static int chip_set_code(unsigned int flash_addr, unsigned char *buf)
 		binary_data=	binary_data_d720;
 	} else if(model_tp_flag==721){
 		binary_data=	binary_data_d721;
+	} else if(model_tp_flag==106){
+		binary_data=	binary_data_s106;
 	} else {
 		printk("%s(); line=%d TODO\n", __func__, __LINE__);
 		binary_data=	binary_data_d816;
@@ -419,19 +426,40 @@ static int chip_set_code(unsigned int flash_addr, unsigned char *buf)
 	buf[3] = (flash_addr & 0xFF);
 	buf[4] = 0x08;
 
-	DEBUG();
-	if ( (flash_addr == 160) || (flash_addr == 168) )
+	DEBUG(); //jimmy modify
+	if(chipidflag==6)
 	{
-		for(i=0;i<8;i++)
+		if ( (flash_addr == 160) || (flash_addr == 168) ) 
 		{
-			buf[i+6] = ~binary_data[flash_addr + i];
+			for(i=0;i<8;i++)
+			{
+				buf[i+6] = ~binary_data[flash_addr + i];
+			}
+		} 
+		else 
+		{
+			for(i=0;i<8;i++)
+			{
+				buf[i+6] = binary_data[flash_addr + i];
+			}
+		
 		}
 	}
 	else
 	{
-		for(i=0;i<8;i++)
+		if ( (flash_addr == 160) || (flash_addr == 168) ) 
 		{
-			buf[i+6] = binary_data[flash_addr + i];
+			for(i=0;i<8;i++)
+			{
+				buf[i+6] = ~binary_data[flash_addr + i];
+			}
+		} 
+		else 
+		{
+			for(i=0;i<8;i++)
+			{
+				buf[i+6] = binary_data[flash_addr + i];
+			}
 		}
 	}
 	buf[5] = ~(buf[2]+buf[3]+buf[4]+buf[6]+buf[7]+buf[8]+buf[9]+buf[10]+buf[11]+buf[12]+buf[13]) + 1;
@@ -853,6 +881,7 @@ int chip_init(int model_tp)
 	{
 		ret = chip_get_chip_id(client,&chip_id);
 		printk("___chip ID = %d___cnt = %d\n",chip_id,retry);
+		chipidflag = chip_id;
 		switch(chip_id)
 		{
 			case 1:	{			//chip: CT362, CT363, CT365, CT368, CT369
@@ -865,7 +894,8 @@ int chip_init(int model_tp)
 				}break;
 
 			case 6:	{			//chip: CT362M, CT363M, CT365M, CT368M, CT369M
-					chip = ct36x_cmd;
+					chip = ct363M_cmd;
+					chip_trim_info_init(client);
 				}break;
 
 			default : {

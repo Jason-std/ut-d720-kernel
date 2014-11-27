@@ -159,6 +159,15 @@ static void check_model(void)
 		X_REVERSE_ENABLE=0;
 		Y_REVERSE_ENABLE=0;
 		
+	}else if(strncmp(g_selected_utmodel, "s106", strlen("s106")) == 0) {
+
+		SCREEN_MAX_Y = 800;
+		SCREEN_MAX_X =  1280;
+		model_tp = 106;
+		XY_SWAP_ENABLE=1;
+		X_REVERSE_ENABLE=0;
+		Y_REVERSE_ENABLE=0;
+		
 	}
 	
 	printk("%s(); - ft x=%d, y=%d\n", __func__, SCREEN_MAX_X, SCREEN_MAX_Y);
@@ -208,6 +217,9 @@ static int vtl_ts_config(struct ts_info *ts)
 	}else if(model_tp==721){
 		ts->config_info.b_CtpRestPinOpposite =1;
 		ts->config_info.b_CtpHaveTouchKey =1;
+	}else if(model_tp==106){
+		ts->config_info.b_CtpRestPinOpposite =1;
+		ts->config_info.b_CtpHaveTouchKey =0;
 	}
 	
 	gpio_direction_output(ts->config_info.rst_gpio_number, (ts->config_info.b_CtpRestPinOpposite ? 0 : 1));
@@ -736,7 +748,7 @@ static int vtl_ts_handler(void *data)
 			printk("____read xy_data error___\n");
 		}
 
-		// Enable ts interrupt
+		// Enable ts interrupt 
 		enable_irq(pg_ts->config_info.irq_number);
 	}
 	
@@ -889,7 +901,7 @@ void __exit vtl_ts_exit(void)
 	i2c_del_driver(&vtl_ts_driver);
 }
 
-module_init(vtl_ts_init);
+late_initcall(vtl_ts_init);
 module_exit(vtl_ts_exit);
 
 MODULE_AUTHOR("yangdechu@vtl.com.cn");
