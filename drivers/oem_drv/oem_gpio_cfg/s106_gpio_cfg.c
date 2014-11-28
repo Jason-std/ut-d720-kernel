@@ -85,5 +85,5 @@ module_exit(s106_gpio_cfg_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Leslie_Xiao");
-MODULE_DESCRIPTION("Urbest S106 RF POWER driver");
+MODULE_DESCRIPTION("Urbetter S106 RF POWER driver");
 

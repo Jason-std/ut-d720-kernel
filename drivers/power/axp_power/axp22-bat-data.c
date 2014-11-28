@@ -139,6 +139,7 @@ const uint8_t ocvreg_d720[0x20]={
 100  // 4.15V    OCVREG1F  
 };
 
+/*
 const uint8_t ocvreg_d721[0x20]={
 0,    // 3.13V    OCVREG0    
 0,    // 3.27V    OCVREG1    
@@ -162,6 +163,42 @@ const uint8_t ocvreg_d721[0x20]={
 65,   // 3.84V    OCVREG13      
 67,   // 3.85V    OCVREG14      
 70,   // 3.87V    OCVREG15      
+76,   // 3.91V    OCVREG16      
+80,   // 3.94V    OCVREG17      
+84,   // 3.98V    OCVREG18      
+87,   // 4.01V    OCVREG19      
+92,   // 4.05V    OCVREG1A      
+95,   // 4.08V    OCVREG1B      
+96,   // 4.1V     OCVREG1C      
+98,   // 4.12V    OCVREG1D      
+99,   // 4.14V    OCVREG1E      
+100  // 4.15V    OCVREG1F  
+};
+*/
+
+const uint8_t ocvreg_d721[0x20]={
+0,    // 3.13V    OCVREG0    
+0,    // 3.27V    OCVREG1    
+0,    // 3.34V    OCVREG2    
+0,    // 3.41V    OCVREG3    
+0,    // 3.48V    OCVREG4    
+0,    // 3.52V    OCVREG5    
+0,    // 3.55V    OCVREG6    
+0,    // 3.57V    OCVREG7    
+0,    // 3.59V    OCVREG8    
+0,    // 3.61V    OCVREG9    
+0,    // 3.63V    OCVREGA    
+0,    // 3.64V    OCVREGB    
+4,   // 3.66V    OCVREGC    
+17,   // 3.7V     OCVREGD    
+31,   // 3.73V    OCVREGE    
+44,   // 3.77V    OCVREGF    
+47,   // 3.78V    OCVREG10      
+52,   // 3.8V     OCVREG11      
+58,   // 3.82V    OCVREG12      
+62,   // 3.84V    OCVREG13      
+65,   // 3.85V    OCVREG14      
+69,   // 3.87V    OCVREG15      
 76,   // 3.91V    OCVREG16      
 80,   // 3.94V    OCVREG17      
 84,   // 3.98V    OCVREG18      
@@ -211,7 +248,8 @@ int get_cap(void)
 		return 5150;
 	}else if(!strcmp(g_selected_utmodel,"d721")){
 		printk("%s:return d721 3600\n",__func__);
-		return 3600;
+		//return 3600;
+		return 3240;
 	}else {
 		printk("%s:return default 6000\n",__func__);
 		return 6000;

@@ -100,5 +100,5 @@ module_exit(s502_gpio_cfg_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Leslie_Xiao");
-MODULE_DESCRIPTION("Urbest S502 RF POWER driver");
+MODULE_DESCRIPTION("Urbetter S502 RF POWER driver");
 
