@@ -95,6 +95,7 @@ struct back_sensor_state
 	int ver;
 	int fps;
 	int check_previewdata;
+	int focus_mode;
 };
 
 enum
@@ -742,31 +743,28 @@ static int back_sensor_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	return err;
 }
 
+
 static int back_sensor_set_focus_mode(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 {
 	int err=0;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	switch(ctrl->value){
-		case FOCUS_MODE_TOUCH_CONTINUOUS:
-		case FOCUS_MODE_CONTINOUS:
-			printk("%s:focus constant\n",__func__);
-		//	err = sensor_i2c_write_array_16(client, HM5065_focus_constant);
-			break;
-
+		case FOCUS_MODE_AUTO:
+		case FOCUS_MODE_TOUCH:
 		case FOCUS_MODE_TOUCH_FLASH_AUTO:
 		case FOCUS_MODE_TOUCH_FLASH_ON:
-		case FOCUS_MODE_TOUCH:
-			printk("%s:focus single\n",__func__);
-		//	err=sensor_i2c_write_array_16(client, HM5065_focus_single);
-			break;
-		case FOCUS_MODE_AUTO:
 		case FOCUS_MODE_TOUCH_FLASH_OFF:
-			printk("%s:focus cancel\n",__func__);
-		//	err=sensor_i2c_write_array_16(client, HM5065_focus_cancel);
+		//	printk("start to single focus\n");
+		//	err=i2c_write_array_16(client, OV5645_focus_single);
 			break;
 
+		case FOCUS_MODE_CONTINOUS:
+		case FOCUS_MODE_CONTINOUS_XY:
+			printk("start to constant focus\n");
+			err = sensor_i2c_write_array_16(client, HM5065_focus_constant);
+			break;
 		default:
-			printk("%s:value=%d error\n",__func__,ctrl->value);
+			//printk("%s:value=%d error\n",__func__,ctrl->value);
 			err=-EINVAL;
 			break;
 	}
@@ -807,6 +805,16 @@ static int back_sensor_set_scene_mode(struct v4l2_subdev *sd, struct v4l2_contro
 }
 
 
+#define FACE_LC 			0x0714
+#define FACE_START_XH 	0x0715
+#define FACE_START_XL 	0x0716
+#define FACE_SIZE_XH  	0x0717
+#define FACE_SIZE_XL	 0x0718
+#define FACE_START_YH	 0x0719
+#define FACE_START_YL	 0x071A
+#define FACE_SIZE_YH	 0x071B
+#define FACE_SIZE_YL 	0x071C
+
 static int back_sensor_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
@@ -842,6 +850,7 @@ static int back_sensor_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		break;
 	case V4L2_CID_CAMERA_FOCUS_MODE:
 		printk("%s:set focus mode:value=%d\n",__func__,ctrl->value);
+		state->focus_mode=ctrl->value;
 		back_sensor_set_focus_mode(sd,ctrl);
 		break;
 	case V4L2_CID_CAMERA_SCENE_MODE:
@@ -856,25 +865,55 @@ static int back_sensor_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	case V4L2_CID_CAMERA_GPS_ALTITUDE:
 		break;
 	case V4L2_CID_CAMERA_OBJECT_POSITION_X:
-		if(value<16)
-			value=16;
-		else if(value>state->pix.width-16)
-			value=value>state->pix.width-16;
-		value=value/16;
-		printk("%s:set posx=%d\n",__func__,value);
-		reg_write_16(client,0x3024,value);
+		printk("set position x=%d\n",value);
+
+		reg_write_16(client,0x0808,0x01);
+		reg_write_16(client,0x0809,0x00); 
+		reg_write_16(client,0x080a,0x00);
+		reg_write_16(client,0x080b,0x00);  
+		reg_write_16(client,0x080c,0x00);
+		reg_write_16(client,0x080d,0x00);
+		reg_write_16(client,0x080e,0x00); 
+
+		reg_write_16(client,0x0751,0x00);	  
+		reg_write_16(client,FACE_LC,0x01);
+
+		
+		if(value>state->pix.width-17)
+			value = state->pix.width-17;
+		else if(value<17)
+			value = 17;
+		value -=16;
+		reg_write_16(client,FACE_START_XH, value>>8);
+		reg_write_16(client,FACE_START_XL, value&0xff);		
+
+		reg_write_16(client,FACE_SIZE_XH,(0x32)>>8);
+		reg_write_16(client,FACE_SIZE_XL,(0x32)&0xff);
+			
 		break;
 	case V4L2_CID_CAMERA_OBJECT_POSITION_Y:
-		if(value<16)
-			value=16;
-		else if(value>state->pix.height-16)
-			value=value>state->pix.height-16;
-		value=value/16;
-		printk("%s:set posy=%d\n",__func__,value);
-		reg_write_16(client,0x3025,value);
+		printk("set position y=%d\n",value);
+		if(value>state->pix.height-17)
+			value = state->pix.height-17;
+		else if(value < 17)
+			value = 17;
+		value -=16;
+		reg_write_16(client,FACE_START_YH, value>>8);
+		reg_write_16(client,FACE_START_YL, value&0xff);
+		reg_write_16(client,FACE_SIZE_YH,(0x32)>>8);
+		reg_write_16(client,FACE_SIZE_YL,(0x32)&0xff);	
+		
 		break;
 	case V4L2_CID_CAMERA_SET_AUTO_FOCUS:
 		printk("%s:set auto focus,value=%d\n",__func__,ctrl->value);
+		if(ctrl->value==AUTO_FOCUS_OFF){
+			state->focus_mode=-1;
+		//	err=sensor_i2c_write_array_16(client, HM5065_focus_cancel);
+		}else{
+			printk("start to single focus22\n");
+			state->focus_mode=FOCUS_MODE_AUTO;
+			err=sensor_i2c_write_array_16(client, HM5065_focus_single);
+		}
 	case V4L2_CID_CAMERA_FRAME_RATE:
 		break;
 	case V4L2_CID_CAM_PREVIEW_ONOFF:
@@ -920,6 +959,7 @@ static int back_sensor_init(struct v4l2_subdev *sd, u32 val)
 	printk("%s(%d); +\n",__func__, val);
 
 	state->framesize_index = back_sensor_CAPTURE_VGA;
+	state->focus_mode = -1;
 
 	back_sensor_power( sd, 1);
 
@@ -1039,13 +1079,15 @@ __back_sensors_found:
 static int back_sensor_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-//	struct back_sensor_state *state =to_state(sd);
+	struct back_sensor_state *state =to_state(sd);
 //	unsigned int r;
 
 	if(enable){
 		sensor_i2c_write_array_16(client, HM5065_reg_start_stream);
 		usleep_range(5000, 5500);
-		sensor_i2c_write_array_16(client, HM5065_focus_constant);
+		if((state->focus_mode==FOCUS_MODE_CONTINOUS) ||
+		   			(state->focus_mode==FOCUS_MODE_CONTINOUS_XY))
+			sensor_i2c_write_array_16(client, HM5065_focus_constant);
 	} else {
 		sensor_i2c_write_array_16(client, HM5065_reg_stop_stream);
 	}
