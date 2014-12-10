@@ -129,23 +129,19 @@ EXPORT_SYMBOL(headset_irq_for_hdmi);
 //extern int s3c_adc_get_adc_data(int channel);
 static void delay_micbias_open(struct work_struct* work)
 {
-//	s3c_adc_get_adc_data(0);
-  //	msleep(1000);
-  int handset_state = 0;
-  printk("g_selected_codec:%s\n",g_selected_codec);
-   if (!strcmp(g_selected_codec,"wm8978"))
-  	 {  	 
-    		msleep(500);
-    		handset_state = gpio_get_value(HP_DETECT_PIN);
-    		//printk("========delay_micbias_open=========wm8978_set_bias(%d)=========\n", handset_state);
-      	if (handset_state == 1){ //plug in
-    	    wm8978_set_bias(1);
-    	  }else{
-    	    wm8978_set_bias(0);
-    	  }
-    	  
-  	 }
-//   schedule_work(&delay_open_micbias);
+	int handset_state = 0;
+	printk("g_selected_codec:%s\n",g_selected_codec);
+	if (!strcmp(g_selected_codec,"wm8978"))
+	{
+		msleep(500);
+		handset_state = gpio_get_value(HP_DETECT_PIN);
+		if (handset_state == 1){ //plug in
+			wm8978_set_bias(1);
+		}else{
+			wm8978_set_bias(0);
+		}
+
+	}
 }
 
 static int earphone_pole_flag;//  2:4pole,1: 3pole, 0: pole
@@ -183,33 +179,33 @@ static void report_4pole_earphone(struct work_struct* work)
 int cur_pin_val, old_pin_val;
 int scan_pin_cnt;
 int press_donw_flg=0;
- int headset_get_adc_data(int channel)
- {
-	int adc_value = 0;
-	int retry_cnt = 0;
 
-	if (IS_ERR(headset_client)) {
-		return -1;  
-	}
-	
-	do {
-		adc_value = s3c_adc_read(headset_client, channel);
-		if (adc_value < 0) {
-			pr_info("%s: adc read(%d), retry(%d)", __func__, adc_value, retry_cnt++);
-			msleep(200);
-		}
-	} while (((adc_value < 0) && (retry_cnt <= 5)));
-
-	if(retry_cnt > 5 ) 
-		return -1;
-
-	return adc_value;
- }
+// int headset_get_adc_data(int channel)
+// {
+//	int adc_value = 0;
+//	int retry_cnt = 0;
+//
+//	if (IS_ERR(headset_client)) {
+//		return -1;
+//	}
+//
+//	do {
+//		adc_value = s3c_adc_read(headset_client, channel);
+//		if (adc_value < 0) {
+//			pr_info("%s: adc read(%d), retry(%d)", __func__, adc_value, retry_cnt++);
+//			msleep(200);
+//		}
+//	} while (((adc_value < 0) && (retry_cnt <= 5)));
+//
+//	if(retry_cnt > 5 )
+//		return -1;
+//
+//	return adc_value;
+// }
  extern int suspend_flag;
  int resume_detect_cnt;
 static void earphone_key_scan(struct work_struct* work)
 {
-#if 1
 
 	if(suspend_flag==1 && resume_detect_cnt<100){
 		resume_detect_cnt++;
@@ -290,50 +286,10 @@ scan_out:
 msleep(EARPHONE_KEY_DETECT_INTERVAL);
 schedule_work(&earphone_work);
 
-#else
-
-	static int input_key_flag=0;
-	int adc_value;
-	adc_value=headset_get_adc_data(1);
-//    printk("adc1:%d\n",adc_value);
-
-	if(earphone_inset_flag==1){
-		if(adc_value>0 && adc_value<20){
-				switch_set_state(&(SwitchData->sdev), SEC_HEADSET_3POLE);
-			}else if(adc_value>4000){
-				earphone_inset_flag=2;
-				switch_set_state(&(SwitchData->sdev), SEC_HEADSET_4POLE);
-				goto scan_out;
-			}
-		}
-	if(earphone_inset_flag==2){
-		if(adc_value>=100 && adc_value<=200){
-			printk("Report Key 0\n");
-			input_report_key(earphon_key_input,earphone_Keycode[0],0);
-			
-			input_sync(earphon_key_input);
-			input_key_flag=1;
-			}
-		else if(input_key_flag==1 && adc_value>4000){
-			printk("Report Key 1\n");
-			input_report_key(earphon_key_input,earphone_Keycode[0],1);
-			
-			input_sync(earphon_key_input);
-			input_key_flag=0;
-			}
-		}
-
-scan_out:	
-	msleep(EARPHONE_KEY_DETECT_INTERVAL);
-	schedule_work(&earphone_work);
-	//add_timer(&earphone_timer);
-	 
-
-
-#endif
 return ;
-			
+
 }
+
 static void headset_switch_work(struct work_struct *work)
 {
 	int handset_state;
@@ -347,7 +303,7 @@ static void headset_switch_work(struct work_struct *work)
 		container_of(work, struct v210_headset_switch_data, work);
 
 	handset_state = gpio_get_value(HP_DETECT_PIN);
-	printk("%s,handset_state:%d,%d\n",__FUNCTION__,handset_state,headset_get_adc_data(1));
+//	printk("%s,handset_state:%d,%d\n",__FUNCTION__,handset_state,headset_get_adc_data(1));
 
 	
 	if (handset_state==1){ //plug in
@@ -366,73 +322,25 @@ static void headset_switch_work(struct work_struct *work)
 		report_state =0;
 	//	disable_irq(EAR_PRESSKEY_ENIT_NUM);
 	}
-	
-	
+
+
 	if(handset_old_state^handset_state) {
 		data->set_micbias_state(!!handset_state);
 		handset_old_state = handset_state;
 	}
 
 
-	/*
-	ear_jack_state = gpio_get_value(EAR_DETECT_PIN);
-	#ifndef DOUBLE_IRQ_CHECK
-	 msleep(msecs_to_jiffies(100));
-	#endif
-	ear_jack_state = gpio_get_value(EAR_DETECT_PIN);
-	ear_jack_state = gpio_get_value(EAR_DETECT_PIN);
-
-	
- 	if(handset_state==1) 
-		{
-			if (ear_jack_state==1)
-				{
-					printk("Headset 4pole plug in.\n");
-				}
-			else
-				{
-					printk("Headset 3pole plug in.\n");
-						
-				}
-		} 
-
-	
-	if (ear_jack_state==1) { // 4 pole plug in or plug out
- 		if(handset_state==1) {
-//			printk("Headset 4pole plug in.\n");
-			report_state = SEC_HEADSET_4POLE;
-		} else {
-			report_state &= ~(SEC_HEADSET_4POLE);
-		}
-	}
-
-	
-	
-	
-	printk("#Headset plug  handset_state=%d, ear_jack_state=%d, report_state=%d, report_old_state=%d.\n", handset_state, ear_jack_state, report_state, report_old_state);
-	*/
-
-//	if(report_old_state ^ report_state) {
-///		switch_set_state(&data->sdev, report_state);
-//		report_old_state = report_state;
-//	}
-	
-//	if (!strcmp(g_selected_codec,"wm8976"))
-//		{
- //	 	  wm8978_set_bias(0);
-//		}
-		
 	schedule_work(&delay_open_micbias);
 
 
 	scan_pin_cnt = 0;
-	 if(handset_state==1)		
+	 if(handset_state==1)
 		earphone_inset_flag=1;
-	else{		
+	else{
 		earphone_inset_flag=0;
 		earphone_pole_flag=0;
 		schedule_work(&earphone_report_work);
-		}
+	}
 
 }
 
@@ -532,22 +440,13 @@ static int headset_switch_probe(struct platform_device *pdev)
 	INIT_WORK(&earphone_work, earphone_key_scan);
 
 	INIT_WORK(&earphone_report_work, report_4pole_earphone);
-	
-		
+
+
 	INIT_WORK(&delay_open_micbias, delay_micbias_open);
-	
+
 	schedule_work(&delay_open_micbias);
-	
+
 	schedule_work(&earphone_work);
-	
-#if 0
-//added by zj on 2011/03/09
-	value = __raw_readl( IO_ADDRESS(V8REG_GPIO_INT_SYS0_TYPE) );
-	value |= 0x00000010;
-	__raw_writel( value, IO_ADDRESS(V8REG_GPIO_INT_SYS0_TYPE) );
-	__raw_writel( 0x112A880, IO_ADDRESS(V8REG_GPIO_INT_SYS_WIDTH1) );		//250ms
-//end
-#endif
 
 	ret = request_irq(switch_data->irq ,headset_irq_handler, IRQF_SHARED /*| IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING*/, switch_data->sdev.name, switch_data);
 	if(ret < 0)
@@ -565,7 +464,7 @@ static int headset_switch_probe(struct platform_device *pdev)
 	}
 	//enable_irq_wake(switch_data->irq);
 	#endif
-	
+
 	/* Perform initial detection */
 	headset_switch_work(&switch_data->work);
 
@@ -631,27 +530,22 @@ static irqreturn_t earphone_press_key_handle(int irq, char* utmodule)
 
 static int __init headset_switch_init(void)
 {
-//	extern char g_selected_utmodel[];
-
-	int ret,i; 
+	int ret,i;
 #if 0
-
 	ret = gpio_request(EARPHONE_KEY, "earphone_key");
 	if (ret)
 	    printk(KERN_ERR "#### failed to request GPH0-3 ");
 
-	
+
  	s3c_gpio_cfgpin(EARPHONE_KEY, S3C_GPIO_SFN(0xf));
  	s3c_gpio_setpull(EARPHONE_KEY, S3C_GPIO_PULL_UP);
  	gpio_set_debounce(EARPHONE_KEY, 143);
 	set_irq_type(EAR_PRESSKEY_ENIT_NUM, IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING);
 	ret= request_irq(EAR_PRESSKEY_ENIT_NUM,earphone_press_key_handle,IRQF_SHARED,NULL,g_selected_utmodel);
 	if(ret<0)
-		{
-			printk("request_irq ERROR");		
-		}
-
-	
+	{
+		printk("request_irq ERROR");
+	}
 #endif
 
 	earphon_key_input = input_allocate_device();
