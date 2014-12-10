@@ -58,7 +58,7 @@
 
 extern unsigned long sys_pwr_conf_addr;
 extern unsigned int l2x0_save[3];
-extern unsigned int scu_save[2];
+//extern unsigned int scu_save[2];
 
 enum hc_type {
 	HC_SDHC,
@@ -925,8 +925,8 @@ static int __init exynos4_init_cpuidle(void)
 	sys_pwr_conf_addr = (unsigned long)S5P_CENTRAL_SEQ_CONFIGURATION;
 
 	/* Save register value for SCU */
-	scu_save[0] = __raw_readl(S5P_VA_SCU + 0x30);
-	scu_save[1] = __raw_readl(S5P_VA_SCU + 0x0);
+//	scu_save[0] = __raw_readl(S5P_VA_SCU + 0x30);
+//	scu_save[1] = __raw_readl(S5P_VA_SCU + 0x0);
 
 	/* Save register value for L2X0 */
 	l2x0_save[0] = __raw_readl(S5P_VA_L2CC + 0x108);
@@ -935,7 +935,7 @@ static int __init exynos4_init_cpuidle(void)
 
 	flush_cache_all();
 	outer_clean_range(virt_to_phys(l2x0_save), ARRAY_SIZE(l2x0_save));
-	outer_clean_range(virt_to_phys(scu_save), ARRAY_SIZE(scu_save));
+//	outer_clean_range(virt_to_phys(scu_save), ARRAY_SIZE(scu_save));
 	udelay (50);
 	return 0;
 }
