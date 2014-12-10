@@ -9,7 +9,12 @@
 #
 # Normal rules
 #
-#.*
+.*
+.version
+.tmp*
+.config.old
+.vmlinux.cmd
+.missing-syscalls.d
 *.o
 *.o.*
 *.a
