@@ -53,8 +53,10 @@ void asmlinkage __attribute__((weak)) early_printk(const char *fmt, ...)
 
 #define __LOG_BUF_LEN	(1 << CONFIG_LOG_BUF_SHIFT)
 
-#ifdef        CONFIG_DEBUG_LL
+#if defined(CONFIG_DEBUG_LL) || defined(CONFIG_UT_BOOT_OEM)
 extern void printascii(char *);
+#define __LOG_MAX_DEBUG_LL   250
+static unsigned int boot_ll_debug_cnt = 0;
 #endif
 
 /* printk's without a loglevel use this.. */
@@ -148,7 +150,7 @@ static int console_may_schedule;
 
 #ifdef CONFIG_PRINTK
 
-static char __log_buf[__LOG_BUF_LEN];
+static char __log_buf[__LOG_BUF_LEN] __nosavedata;
 static char *log_buf = __log_buf;
 static int log_buf_len = __LOG_BUF_LEN;
 static unsigned logged_chars; /* Number of chars produced since last read+clear operation */
@@ -369,8 +371,10 @@ static int check_syslog_permissions(int type, bool from_file)
 			return 0;
 		/* For historical reasons, accept CAP_SYS_ADMIN too, with a warning */
 		if (capable(CAP_SYS_ADMIN)) {
-			WARN_ONCE(1, "Attempt to access syslog with CAP_SYS_ADMIN "
-				 "but no CAP_SYSLOG (deprecated).\n");
+			printk_once(KERN_WARNING "%s (%d): "
+				 "Attempt to access syslog with CAP_SYS_ADMIN "
+				 "but no CAP_SYSLOG (deprecated).\n",
+				 current->comm, task_pid_nr(current));
 			return 0;
 		}
 		return -EPERM;
@@ -923,7 +927,8 @@ asmlinkage int vprintk(const char *fmt, va_list args)
 	printed_len += vscnprintf(printk_buf + printed_len,
 				  sizeof(printk_buf) - printed_len, fmt, args);
 
-#ifdef	CONFIG_DEBUG_LL
+#if defined(CONFIG_DEBUG_LL) || defined(CONFIG_UT_BOOT_OEM)
+	if (boot_ll_debug_cnt++<__LOG_MAX_DEBUG_LL && (boot_ll_debug_cnt>240)) 
 	printascii(printk_buf);
 #endif
 
@@ -1183,6 +1188,12 @@ void resume_console(void)
 	console_suspended = 0;
 	console_unlock();
 }
+
+int get_console_suspended(void)
+{
+	return console_suspended;
+}
+EXPORT_SYMBOL(get_console_suspended);
 
 /**
  * console_cpu_notify - print deferred console messages after CPU hotplug
