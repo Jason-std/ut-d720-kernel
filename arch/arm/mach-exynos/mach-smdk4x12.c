@@ -2682,7 +2682,7 @@ static struct i2c_board_info i2c_devs2[] __initdata = {
 #endif
 };
 
-#ifdef CONFIG_TOUCHSCREEN_VTL_CT36X
+#if 1//def CONFIG_TOUCHSCREEN_VTL_CT36X
 #include "../../../drivers/oem_drv/touchscreen/vtl_ts/vtl_ts.h"
 
 struct ts_config_info	vtl_ts_config_info = {
@@ -2695,7 +2695,7 @@ struct ts_config_info	vtl_ts_config_info = {
 };
 #endif
 static struct i2c_board_info i2c_devs3[] __initdata = {
-#ifdef CONFIG_TOUCHSCREEN_VTL_CT36X
+#if 1//def CONFIG_TOUCHSCREEN_VTL_CT36X
 	{
 		.type		="vtl_ts",
 		.addr		=0x01,
@@ -4232,10 +4232,12 @@ static void __init smdk4x12_machine_init(void)
 #ifdef CONFIG_S3C_DEV_HSMMC1
 	if (strstr(g_selected_utmodel, "d816")) {
 		s3c_sdhci1_set_platdata(&smdk4x12_hsmmc1_pdata_d816);
-	}else if(strstr(g_selected_utmodel, "d720")){
+	}
+/*
+	else if(strstr(g_selected_utmodel, "d720")){
 		s3c_sdhci1_set_platdata(&smdk4x12_hsmmc1_pdata_d720);
 	}
-
+*/
 #endif
 #ifdef CONFIG_S3C_DEV_HSMMC2
 	s3c_sdhci2_set_platdata(&smdk4x12_hsmmc2_pdata);
@@ -4451,7 +4453,7 @@ static void __init smdk4x12_machine_init(void)
 
 	platform_add_devices(smdk4x12_devices, ARRAY_SIZE(smdk4x12_devices));
 #ifdef CONFIG_S3C_DEV_HSMMC1
-	if (strstr(g_selected_utmodel, "d816")||strstr(g_selected_utmodel, "d720")) {
+	if (strstr(g_selected_utmodel, "d816")/*||strstr(g_selected_utmodel, "d720")*/) {
 		platform_add_devices(hsmm1_d816_devices, ARRAY_SIZE(hsmm1_d816_devices));
 	}
 #endif	
