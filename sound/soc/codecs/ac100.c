@@ -220,7 +220,7 @@ static int codec_set_speakerout(struct snd_kcontrol *kcontrol,
 
 		write_power_item_value(POWER_SPK_EN,1);
 	//	gpio_set_value(item.gpio.gpio, 1);
-		msleep(62);
+//		msleep(62);
 		for (i = 1; i < 32; i = i + 1) {
 			/*set  volume*/
 			reg_val = snd_soc_read(codec, SPKOUT_CTRL);
@@ -251,7 +251,7 @@ static int codec_set_speakerout(struct snd_kcontrol *kcontrol,
 		snd_soc_write(codec, SPKOUT_CTRL, reg_val);
 		write_power_item_value(POWER_SPK_EN,0);
 	//	gpio_set_value(item.gpio.gpio, 0);
-		msleep(62);
+//		msleep(62);
 		/*disable l/r spk*/
 		reg_val = snd_soc_read(codec, SPKOUT_CTRL);
 		reg_val &= ~((0x1<<RSPK_EN)|(0x1<<LSPK_EN));
@@ -497,7 +497,7 @@ static int codec_analog_set_mainmic(struct snd_kcontrol *kcontrol,
 	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
 	int reg_val;
 	codec_analog_mainmic_en = ucontrol->value.integer.value[0];
-
+#if 0
 	if (codec_analog_mainmic_en) {
 		/*close headset mic(mic2) routeway*/
 		reg_val = snd_soc_read(codec, ADC_SRCBST_CTRL);
@@ -548,7 +548,7 @@ static int codec_analog_set_mainmic(struct snd_kcontrol *kcontrol,
 	 	 reg_val |= (0x4<<ADC_MIC1G);
 	 	 snd_soc_write(codec, ADC_SRCBST_CTRL, reg_val);
 	}
-
+#endif
 	return 0;
 }
 
@@ -2009,7 +2009,7 @@ static int codec_spk_play_open(struct snd_soc_codec *codec)
 
 	//printk("########enter111 %s ########\n",__func__);
 	//msleep(2000);
-	msleep(50);
+//	msleep(50);
 	/*speaker enable*/
 	reg_val = snd_soc_read(codec, SPKOUT_CTRL);
 	reg_val |= (0x1<<RSPK_EN)|(0x1<<LSPK_EN);
@@ -2019,7 +2019,7 @@ static int codec_spk_play_open(struct snd_soc_codec *codec)
 	if (play_running) {
 		//enable external pa for speaker
 		//gpio_set_value(item.gpio.gpio, 1);
-		msleep(62);
+//		msleep(62);
 	}
 //	msleep(2000);
 	printk("leave %s\n",__func__);
@@ -2105,7 +2105,7 @@ static int codec_headphone_play_open(struct snd_soc_codec *codec)
 		reg_val = snd_soc_read(codec, HPOUT_CTRL);
 		reg_val |= (0x1<<HPPA_EN);
 		snd_soc_write(codec, HPOUT_CTRL, reg_val);
-		msleep(10);
+//		msleep(10);
 		/*unmute l/r headphone pa*/
 		reg_val = snd_soc_read(codec, HPOUT_CTRL);
 		reg_val |= (0x1<<RHPPA_MUTE)|(0x1<<LHPPA_MUTE);
@@ -2313,7 +2313,7 @@ static int codec_set_spk_headset_earpiece(struct snd_kcontrol *kcontrol,
 	codec_speaker_headset_earpiece_en = ucontrol->value.integer.value[0];
 
       printk("enter %s:codec_speaker_headset_earpiece_en=%d\n",__func__,codec_speaker_headset_earpiece_en);
-
+/*
 	if (codec_speaker_headset_earpiece_en == 1) {
 		codec_spk_play_open(codec);
 	} else if (codec_speaker_headset_earpiece_en == 2) {
@@ -2325,7 +2325,7 @@ static int codec_set_spk_headset_earpiece(struct snd_kcontrol *kcontrol,
 	}else if(codec_speaker_headset_earpiece_en == 4) {
 		codec_bt_play_open(codec);
 	}
-
+*/
 	return 0;
 }
 
@@ -2915,10 +2915,10 @@ static int sndvir_audio_umute(struct snd_soc_dai *codec_dai, int mute)
 				snd_soc_write(codec, HPOUT_CTRL, reg_val);
 				break;
 			case 1:
-				msleep(100);
+		//		msleep(100);
 				write_power_item_value(POWER_SPK_EN,1);
 				//gpio_set_value(item.gpio.gpio, 1);
-				msleep(62);
+		//		msleep(62);
 				break;
 			case 2:
 				reg_val = snd_soc_read(codec, SPKOUT_CTRL);
@@ -2934,12 +2934,12 @@ static int sndvir_audio_umute(struct snd_soc_dai *codec_dai, int mute)
 				snd_soc_write(codec, HPOUT_CTRL, reg_val);
 				write_power_item_value(POWER_SPK_EN,1);
 				//gpio_set_value(item.gpio.gpio, 1);
-				msleep(10);
+	//			msleep(10);
 				/*unmute l/r headphone pa*/
 				reg_val = snd_soc_read(codec, HPOUT_CTRL);
 				reg_val |= (0x1<<RHPPA_MUTE)|(0x1<<LHPPA_MUTE);
 				snd_soc_write(codec, HPOUT_CTRL, reg_val);
-				msleep(50);
+	//			msleep(50);
 				break;
 			case 3:
 				/*unmute earpiece line*/
@@ -2956,6 +2956,7 @@ static int sndvir_audio_umute(struct snd_soc_dai *codec_dai, int mute)
 				break;
 			}
 		} else {
+	//		msleep(500);
 			write_power_item_value(POWER_SPK_EN,0);
 		}
 
@@ -3026,6 +3027,7 @@ static void sndvir_audio_shutdown(struct snd_pcm_substream *substream,
 	int reg_val = 0;
 	struct snd_soc_codec *codec = codec_dai->codec;
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+		printk("%s:play\n",__func__);
 		if ( !(codec_speakerout_en || codec_headphoneout_en || codec_earpieceout_en ||
 					codec_lineinin_en || codec_voice_record_en || codec_bt_clk_format || codec_digital_bb_bt_clk_format) ) {
 			switch (codec_speaker_headset_earpiece_en){
@@ -3055,7 +3057,7 @@ static void sndvir_audio_shutdown(struct snd_pcm_substream *substream,
 				snd_soc_write(codec, HPOUT_CTRL, reg_val);
 				//turn off speaker's external pa.
 				//gpio_set_value(item.gpio.gpio, 0);
-				msleep(62);
+//				msleep(62);
 				/*disable speaker*/
 				reg_val = snd_soc_read(codec, SPKOUT_CTRL);
 				reg_val &= ~((0x1<<RSPK_EN)|(0x1<<LSPK_EN));
@@ -3069,7 +3071,7 @@ static void sndvir_audio_shutdown(struct snd_pcm_substream *substream,
 
 				/*disable pa_ctrl, turn off speaker's external pa.*/
 				//gpio_set_value(item.gpio.gpio, 0);
-				msleep(62);
+	//			msleep(62);
 				/*disable speaker*/
 				reg_val = snd_soc_read(codec, SPKOUT_CTRL);
 				reg_val &= ~((0x1<<RSPK_EN)|(0x1<<LSPK_EN));
@@ -3108,7 +3110,7 @@ static void sndvir_audio_shutdown(struct snd_pcm_substream *substream,
 
 				/*disable pa_ctrl, turn off speaker's external pa.*/
 				//gpio_set_value(item.gpio.gpio, 0);
-				msleep(62);
+	//			msleep(62);
 				/*disable speaker*/
 				reg_val = snd_soc_read(codec, SPKOUT_CTRL);
 				reg_val &= ~((0x1<<RSPK_EN)|(0x1<<LSPK_EN));
@@ -3202,6 +3204,7 @@ static void sndvir_audio_shutdown(struct snd_pcm_substream *substream,
 		}
 		play_running = 0;
 	} else {
+		printk("%s:cap\n",__func__);
 		if ( !(codec_speakerout_en || codec_headphoneout_en || codec_earpieceout_en ||
 					codec_lineinin_en || codec_voice_record_en || codec_bt_clk_format) )
 		{
@@ -3357,7 +3360,7 @@ static int codec_capture_open(struct snd_soc_codec *codec)
 	reg_val &= ~(0x3<<AIF1_AD0R_ENA);
 	reg_val |= (0x1<<AIF1_AD0L_ENA)|(0x1<<AIF1_AD0R_ENA);
 	snd_soc_write(codec, AIF1_ADCDAT_CTRL,reg_val);
-	msleep(200);
+//	msleep(200);
 	return 0;
 }
 
@@ -3409,7 +3412,7 @@ static int sndvir_audio_prepare(struct snd_pcm_substream *substream,
 	printk("enter %s:stream=%d\n",__func__,substream->stream);
 	printk("enter %s:state=%d\n",__func__,substream->runtime->status->state);
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-		if(substream->runtime->status->state == SNDRV_PCM_STATE_XRUN){
+	//	if(substream->runtime->status->state == SNDRV_PCM_STATE_XRUN){
 			if (codec_speaker_headset_earpiece_en == 1) {
 				play_ret = codec_spk_play_open(codec);
 			} else if (codec_speaker_headset_earpiece_en == 2) {
@@ -3418,9 +3421,9 @@ static int sndvir_audio_prepare(struct snd_pcm_substream *substream,
 				play_ret = codec_earpiece_play_open(codec);
 			} else if (codec_speaker_headset_earpiece_en == 0) {
 				play_ret = codec_headphone_play_open(codec);
-			}
+			} 
 			play_running = 1;
-		}
+	//	}
 
 	} else {
 		if (codec_voice_record_en && (codec_digital_mainmic_en ||codec_digital_headsetmic_en)) {
@@ -3437,7 +3440,7 @@ static int sndvir_audio_prepare(struct snd_pcm_substream *substream,
 			codec_voice_linein_capture_open(codec);
 		} else if (!codec_voice_record_en) {
 			codec_capture_open(codec);
-		}
+		} 
 	}
 
 	return 0;
