@@ -21,8 +21,6 @@
 #include <linux/mmc/sdio.h>
 #include <linux/mmc/sdio_func.h>
 
-#include <urbetter/check.h>
-
 #include "sdio_cis.h"
 #include "sdio_ops.h"
 
@@ -227,160 +225,11 @@ static const struct cis_tpl cis_tpl_list[] = {
 	{	0x22,	0,	cistpl_funce		},
 };
 
-static int sdio_read_cis_e2130s(struct mmc_card *card, struct sdio_func *func)
-{
-	int ret;
-	struct sdio_func_tuple *this, **prev;
-	unsigned i, ptr = 0;
-	/*BEGIN: DTS2014051203188 n00203913 2014-05-12 modified for SD Modem*/
-    unsigned funN = 0;
-    if (func)
-        funN = func->num;
-    else
-        funN = 0;
-    /*END: DTS2014051203188 n00203913 2014-05-12 modified for SD Modem*/
-
-	/*
-	 * Note that this works for the common CIS (function number 0) as
-	 * well as a function's CIS * since SDIO_CCCR_CIS and SDIO_FBR_CIS
-	 * have the same offset.
-	 */
-	for (i = 0; i < 3; i++) {
-		unsigned char x, fn;
-
-		if (func)
-			fn = func->num;
-		else
-			fn = 0;
-
-		ret = mmc_io_rw_direct(card, 0, 0,
-			SDIO_FBR_BASE(fn) + SDIO_FBR_CIS + i, 0, &x);
-		if (ret)
-			return ret;
-		ptr |= x << (i * 8);
-	}
-	/*BEGIN: DTS2014051203188 n00203913 2014-05-12 modified for SD Modem*/
-    printk("%s[%d]: after read first 3 pointer\n", __FUNCTION__, funN);
-	if (func)
-		prev = &func->tuples;
-	else
-		prev = &card->tuples;
-
-	BUG_ON(*prev);
-
-	do {
-	    /*BEGIN: DTS2014032201528 n00203913 2014-03-22 modified for SD Modem*/
-		unsigned char tpl_code, tpl_link, tmp[4];
-		
-		/*begin:modified by j00122012 for hisi v3r3 platform 2013-5-28*/
-		//ret = mmc_io_rw_direct(card, 0, 0, ptr++, 0, &tpl_code);
-		ret = mmc_io_rw_extended(card, 0, 0, ptr++, 1, tmp, 1, 4);
-		tpl_code = tmp[0];
-		/*end:modified by j00122012 for hisi v3r3 platform 2013-5-28*/
-		if (ret)
-			break;
-        printk("%s[%d]: pos 1 tpl_code=%x\n", __FUNCTION__, funN, tpl_code);
-		/* 0xff means we're done */
-		if (tpl_code == 0xff)
-		{
-		    printk("%s[%d]:cis read over.\n", __FUNCTION__, funN);
-			break;
-		}
-
-		/* null entries have no link field or data */
-		if (tpl_code == 0x00)
-			continue;
-
-		/*begin:modified by j00122012 for hisi v3r3 platform 2013-5-28*/
-		//ret = mmc_io_rw_direct(card, 0, 0, ptr++, 0, &tpl_link);
-		ret = mmc_io_rw_extended(card, 0, 0, ptr++, 1, tmp, 1, 4);
-		tpl_link = tmp[0];
-		/*end:modified by j00122012 for hisi v3r3 platform 2013-5-28*/
-		if (ret)
-			break;
-        printk("%s[%d]: pos 2, tpl_link=%x\n", __FUNCTION__, funN, tpl_link);
-		/* a size of 0xff also means we're done */
-		if (tpl_link == 0xff)
-			break;
-
-		this = kmalloc(sizeof(*this) + tpl_link, GFP_KERNEL);
-		if (!this)
-			return -ENOMEM;
-        printk("%s[%d], tpl_data:\n", __FUNCTION__, funN);
-		for (i = 0; i < tpl_link; i++) {
-		/*begin:modified by j00122012 for hisi v3r3 platform 2013-5-28*/
-			//ret = mmc_io_rw_direct(card, 0, 0,
-			//		       ptr + i, 0, &this->data[i]);
-			ret = mmc_io_rw_extended(card, 0, 0, ptr + i, 1, tmp, 1, 4);
-                    printk("%2x ", tmp[0]);
-			this->data[i]=tmp[0];
-		/*end:modified by j00122012 for hisi v3r3 platform 2013-5-28*/
-			if (ret)
-				break;
-		}
-        printk("\n");
-		/*END: DTS2014032201528 n00203913 2014-03-22 modified for SD Modem*/
-        /*END: DTS2014051203188 n00203913 2014-05-12 modified for SD Modem*/
-		if (ret) {
-			kfree(this);
-			break;
-		}
-
-		/* Try to parse the CIS tuple */
-		ret = cis_tpl_parse(card, func, "CIS",
-				    cis_tpl_list, ARRAY_SIZE(cis_tpl_list),
-				    tpl_code, this->data, tpl_link);
-		if (ret == -EILSEQ || ret == -ENOENT) {
-			/*
-			 * The tuple is unknown or known but not parsed.
-			 * Queue the tuple for the function driver.
-			 */
-			this->next = NULL;
-			this->code = tpl_code;
-			this->size = tpl_link;
-			*prev = this;
-			prev = &this->next;
-
-			if (ret == -ENOENT) {
-				/* warn about unknown tuples */
-				printk(KERN_WARNING "%s: queuing unknown"
-				       " CIS tuple 0x%02x (%u bytes)\n",
-				       mmc_hostname(card->host),
-				       tpl_code, tpl_link);
-			}
-
-			/* keep on analyzing tuples */
-			ret = 0;
-		} else {
-			/*
-			 * We don't need the tuple anymore if it was
-			 * successfully parsed by the SDIO core or if it is
-			 * not going to be queued for a driver.
-			 */
-			kfree(this);
-		}
-
-		ptr += tpl_link;
-	} while (!ret);
-
-	/*
-	 * Link in all unknown tuples found in the common CIS so that
-	 * drivers don't have to go digging in two places.
-	 */
-	if (func)
-		*prev = card->tuples;
-
-	return ret;
-}
-
 static int sdio_read_cis(struct mmc_card *card, struct sdio_func *func)
 {
 	int ret;
 	struct sdio_func_tuple *this, **prev;
 	unsigned i, ptr = 0;
-	
-	if(CHECK_GSM("e2130s"))
-	    return sdio_read_cis_e2130s(card,func);
 
 	/*
 	 * Note that this works for the common CIS (function number 0) as
