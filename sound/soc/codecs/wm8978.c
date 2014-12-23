@@ -1041,7 +1041,6 @@ extern int g_amplifier_type;
 static int wm8978_mute(struct snd_soc_dai *dai, int mute)
 {
 	struct snd_soc_codec *codec = dai->codec;
-
 	wm8978_dbg("%s: %d\n", __func__, mute);
 	
 	if (mute) {
@@ -1057,6 +1056,10 @@ static int wm8978_mute(struct snd_soc_dai *dai, int mute)
 		if(b_spk_high_enable) {
 			gpio_direction_output(EXYNOS4212_GPM1(4),0);
 		}
+
+		// add by Leslie
+		snd_soc_update_bits(codec, WM8978_LOUT1_HP_CONTROL, 0x3F, 0x00);
+		snd_soc_update_bits(codec, WM8978_ROUT1_HP_CONTROL, 0x3F, 0x00);
 
 		snd_soc_update_bits(codec, 52, 0x40, 0x40);
 	 	snd_soc_update_bits(codec, 53, 0x40, 0x40);
@@ -1078,6 +1081,7 @@ static int wm8978_mute(struct snd_soc_dai *dai, int mute)
 			
 		if(b_spk_high_enable) {
 			gpio_direction_output(EXYNOS4212_GPM1(4),1);
+			msleep(220);  // wake up time for some amplifier
 		}
 
 		if(earphone_inset_flag){
