@@ -48,6 +48,8 @@
 #include <linux/delay.h>
 #include <plat/gpio-cfg.h>
 
+#include "urbetter/check.h"
+
 #define SLOW_DOWN_FREQ
 
 #define  LCD_POWER_CTRL
@@ -468,6 +470,7 @@ static int s3cfb_probe(struct platform_device *pdev)
 	else{
 		write_power_item_value(POWER_LCD33_EN, 1);
 		write_power_item_value(POWER_LCD18_EN, 1); // enable LCD 1.8v
+		msleep(25);
 		write_power_item_value(POWER_LVDS_PD, 1);
 		if(strncmp(s_selected_lcd_name,"jcm101",strlen("jcm101")))	// ericli add 2013-07-03
 		{
@@ -677,12 +680,12 @@ void s3cfb_early_suspend(struct early_suspend *h)
 		}
 //end	
 
-	
 	write_power_item_value(POWER_BL_EN, 0);
 	udelay(120);
 
 	write_power_item_value(POWER_LCD33_EN, 0);
-	write_power_item_value(POWER_LCD18_EN, 0);
+	if(!CHECK_UTMODEL("d720"))
+		write_power_item_value(POWER_LCD18_EN, 0);
 	write_power_item_value(POWER_LVDS_PD, 0);
 //	udelay(120);
 #endif
@@ -782,7 +785,7 @@ void s3cfb_late_resume(struct early_suspend *h)
 #endif
 #endif
 
-//moveby jerry, turn on  LCD and backlight power after  LCD clock & controller has enabled
+
 #ifdef LCD_POWER_CTRL
 	//raymanfeng
 	//FIXME: not here.
@@ -808,6 +811,7 @@ void s3cfb_late_resume(struct early_suspend *h)
 	else
 	{
 		write_power_item_value(POWER_LCD33_EN, 1);
+		msleep(25);
 		write_power_item_value(POWER_LCD18_EN, 1);
 		write_power_item_value(POWER_BL_EN, 1);	
 		write_power_item_value(POWER_LVDS_PD, 1);		
@@ -819,11 +823,7 @@ void s3cfb_late_resume(struct early_suspend *h)
 	if(!strncmp(s_selected_lcd_name,"dpip3",strlen("dpip3")))	
 		dp501_train_init();
 	
-//move end
-	//g_wakeup_flag = 1;//add by jerry
 
-	//otm1280a_late_resume();
-//#endif
 	return;
 }
 //#if ESD_FOR_LCD
