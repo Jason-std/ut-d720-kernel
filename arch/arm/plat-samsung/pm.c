@@ -345,8 +345,8 @@ static void ut4412_setup_sleepin_eint(void)
 	s3c_gpio_setpull(GPIO_KP_VOLUMEDOWN, S3C_GPIO_PULL_UP);
 //	s3c_gpio_setpull(GPIO_KEY_HOME, S3C_GPIO_PULL_UP);
 
-	enable_irq_wake(IRQ_KP_VOLUMEUP);
-	enable_irq_wake(IRQ_KP_VOLUMEDOWN);
+//	enable_irq_wake(IRQ_KP_VOLUMEUP);
+//	enable_irq_wake(IRQ_KP_VOLUMEDOWN);
 
 	if(!strcmp(g_selected_utmodel,"d720")){
 		printk("enable D720 irq14/irq2 wake up\n");
@@ -397,9 +397,9 @@ static void ut4412_setup_wakeout_eint(void)
 		disable_irq_wake(IRQ_ON_OUT);
 	}
 
-	disable_irq_wake(IRQ_KP_VOLUMEUP);
-	disable_irq_wake(IRQ_KP_VOLUMEDOWN);
-	disable_irq_wake(IRQ_KEY_HOME);
+//	disable_irq_wake(IRQ_KP_VOLUMEUP);
+//	disable_irq_wake(IRQ_KP_VOLUMEDOWN);
+//	disable_irq_wake(IRQ_KEY_HOME);
 
 	return;
 }
