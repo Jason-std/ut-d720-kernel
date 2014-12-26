@@ -327,14 +327,22 @@ static void ut4412_setup_sleepin_eint(void)
 
        printk("%s(); +\n",__func__);
 
+/**********************************************
+*before enter sleep , must clear GPX0_0/GPX0_1 interrupt mask ,
+*because Button driver use the interrupt mask to determine 
+*wether turn on screen
+
+***********************************************/
 	if (is_axp_pmu) {
 		s3c_gpio_cfgpin(GPIO_PMU_INT, S3C_GPIO_SFN(0xF));
 		s3c_gpio_setpull(GPIO_PMU_INT, S3C_GPIO_PULL_UP);
 		enable_irq_wake(IRQ_PMU_INT);
+		__raw_writel(0x00000001,S5P_EINT_PEND(0));  // GPX0_0
 	} else {
 		s3c_gpio_cfgpin(GPIO_ON_OUT, S3C_GPIO_SFN(0xF));
 		s3c_gpio_setpull(GPIO_ON_OUT, S3C_GPIO_PULL_UP);
 		enable_irq_wake(IRQ_ON_OUT);
+		__raw_writel(0x00000002,S5P_EINT_PEND(0));  // GPX0_1
 	}
 
 	s3c_gpio_cfgpin(GPIO_KP_VOLUMEUP, S3C_GPIO_SFN(0xF));
@@ -408,12 +416,20 @@ static void ut4412_setup_wakeout_eint(void)
 
 int s3c_pm_is_key_wakeup(void)
 {
-	if(__raw_readl(S5P_WAKEUP_STAT) & 0x01) {
+/*	if(__raw_readl(S5P_WAKEUP_STAT) & 0x01) {
 		if((wake_type0 & 0x2)
 			|| (wake_type2 & 0x1)
 			|| (wake_type2 & 0x2)
 			)
 		return 1;
+	}  */
+	
+	if(!(__raw_readl(S5P_WAKEUP_STAT) & 0x01))return 0;
+	
+	if (is_axp_pmu) {
+		if(wake_type0 & 0x1)return 1;  // GPX0_0
+	}else{
+		if(wake_type0 & 0x2)return 1;  // GPX0_1
 	}
 
 	return 0;

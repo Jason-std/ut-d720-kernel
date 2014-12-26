@@ -36,6 +36,7 @@ static inline void s3c_pm_arch_prepare_irqs(void)
 #endif
 	__raw_writel((s3c_irqwake_intmask & S5P_WAKEUP_MASK_BIT), S5P_WAKEUP_MASK);
 	__raw_writel(s3c_irqwake_eintmask, S5P_EINT_WAKEUP_MASK);
+	printk("EINT wake up enable mask 0x%08x\n",__raw_readl(S5P_EINT_WAKEUP_MASK));
 }
 
 static inline void s3c_pm_arch_stop_clocks(void)
@@ -43,18 +44,32 @@ static inline void s3c_pm_arch_stop_clocks(void)
 	/* nothing here yet */
 }
 
+static void print_wakeup_source(unsigned int w)
+{
+	if(w&0x00000001)
+		printk("wake up by EINT\n");
+	else if(w&0x00000002)
+		printk("wake up by RTC-ALARM\n");
+	else if(w&0x00000004)
+		printk("wake up by RTC-TICK\n");
+	else
+		printk("wake up by other \n");
+}
+
 static inline void s3c_pm_arch_show_resume_irqs(void)
 {
 #if defined(CONFIG_CPU_EXYNOS4210) || defined(CONFIG_CPU_EXYNOS4412)\
 	|| defined(CONFIG_CPU_EXYNOS5250)
 	// pr_info
+	unsigned int wake_stat=__raw_readl(S5P_WAKEUP_STAT);
+	pr_info("WAKEUP_STAT: 0x%x\n", wake_stat);
+	print_wakeup_source(wake_stat);
 	
-	pr_info("WAKEUP_STAT: 0x%x\n", __raw_readl(S5P_WAKEUP_STAT));
 	wake_type0 = __raw_readl(S5P_EINT_PEND(0));
 	wake_type1 = __raw_readl(S5P_EINT_PEND(1));
 	wake_type2 = __raw_readl(S5P_EINT_PEND(2));
 	wake_type3 = __raw_readl(S5P_EINT_PEND(3));
-	pr_info("WAKEUP_INTx_PEND: 0x%x, 0x%x, 0x%x, 0x%x\n", 
+	pr_info("WAKEUP_INTx_PEND(GPX0~GPX3): 0x%x, 0x%x, 0x%x, 0x%x\n", 
 		wake_type0 ,
 		wake_type1 ,
 		wake_type2 ,
