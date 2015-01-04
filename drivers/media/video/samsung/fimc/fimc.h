@@ -43,6 +43,7 @@
 
 #define FIMC_CORE_CLK		"sclk_fimc"
 #define FIMC_CLK_RATE		166750000
+#define FIMC0_CLK_RATE         416875000
 #define EXYNOS_BUSFREQ_NAME	"exynos-busfreq"
 
 #if defined(CONFIG_ARCH_EXYNOS4)

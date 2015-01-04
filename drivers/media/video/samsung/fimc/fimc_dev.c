@@ -865,7 +865,10 @@ static struct fimc_control *fimc_register_controller(struct platform_device *pde
 		clk_put(fimc_src_clk);
 		return NULL;
 	}
-	clk_set_rate(sclk_fimc_lclk, FIMC_CLK_RATE);
+	if(pdev->id==0)
+		clk_set_rate(sclk_fimc_lclk, FIMC0_CLK_RATE);  // add by leslie
+	else
+		clk_set_rate(sclk_fimc_lclk, FIMC_CLK_RATE);
 	clk_put(sclk_fimc_lclk);
 	clk_put(fimc_src_clk);
 
