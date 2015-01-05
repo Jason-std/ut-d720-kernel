@@ -25,7 +25,7 @@
 #define AW_GPIO_API_ENABLE
 //#undef CONFIG_HAS_EARLYSUSPEND
 #ifndef CONFIG_HAS_EARLYSUSPEND
-#define CONFIG_HAS_EARLYSUSPEND
+//#define CONFIG_HAS_EARLYSUSPEND
 #endif
 struct ft5x_ts_platform_data{
 	u16	intr;		/* irq number	*/
