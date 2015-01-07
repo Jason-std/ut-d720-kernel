@@ -193,6 +193,17 @@ static int __init select_utmodel(char *str)
 }
 __setup("utmodel=", select_utmodel);
 
+
+char g_selected_pcb[32] = {'\0'};
+EXPORT_SYMBOL(g_selected_pcb);
+static int __init select_pcb(char *str)
+{
+	printk(KERN_DEBUG"%s: str=%s\n", __func__, str);
+	strcpy(g_selected_pcb, str);
+	return 0;
+}
+__setup("pcb=", select_pcb);
+
 char g_selected_bltype[32] = {'\0'};
 EXPORT_SYMBOL(g_selected_bltype);
 static int __init select_bltype(char *str)
@@ -2645,6 +2656,64 @@ static struct i2c_board_info i2c_devs0[] __initdata = {
 //#endif
 //};
 
+
+struct cw_bat_platform_data {
+
+        int is_dc_charge;
+        int dc_det_pin;
+        int dc_det_level;
+
+        int is_usb_charge;
+        int chg_mode_sel_pin;
+        int chg_mode_sel_level;
+
+        int bat_low_pin;
+        int bat_low_level;
+        int chg_ok_pin;
+        int chg_ok_level;
+        u8* cw_bat_config_info;
+};
+
+#define SIZE_BATINFO    64 
+/*
+static u8 cw201x_config_info[SIZE_BATINFO] = {
+		0x15, 0x42, 0x60, 0x59, 0x52,
+		0x58, 0x4D, 0x48, 0x48, 0x44,
+		0x44, 0x46, 0x49, 0x48, 0x32,
+		0x24, 0x20, 0x17, 0x13, 0x0F,
+		0x19, 0x3E, 0x51, 0x45, 0x08,
+		0x76, 0x0B, 0x85, 0x0E, 0x1C,
+		0x2E, 0x3E, 0x4D, 0x52, 0x52,
+		0x57, 0x3D, 0x1B, 0x6A, 0x2D,
+		0x25, 0x43, 0x52, 0x87, 0x8F,
+		0x91, 0x94, 0x52, 0x82, 0x8C,
+		0x92, 0x96, 0xFF, 0x7B, 0xBB,
+		0xCB, 0x2F, 0x7D, 0x72, 0xA5,
+		0xB5, 0xC1, 0x46, 0xAE};
+*/
+static u8 cw201x_config_info[SIZE_BATINFO] = {
+		0x14,0x83,0x59,0x59,0x55,0x50,0x4D,0x4C,0x47,0x46,
+		0x3E,0x38,0x2A,0x29,0x2E,0x20,0x13,0x0C,0x0A,0x10,
+		0x16,0x35,0x4B,0x6B,0x85,0x82,0x0C,0xCD,0x22,0x43,
+		0x48,0x48,0x45,0x47,0x4B,0x4C,0x3D,0x13,0x34,0x00,
+		0x00,0x1B,0x52,0x87,0x8F,0x91,0x94,0x52,0x82,0x8C,
+		0x92,0x96,0x4C,0x54,0x9C,0xCB,0x2F,0x7D,0x72,0xA5,
+		0xB5,0xC1,0x46,0xAE};
+struct cw_bat_platform_data cw201x_platform_data = {
+/*	.dc_det_pin = NULL,
+	.chg_mode_sel_pin = NULL,
+	.chg_ok_pin = NULL,
+	.bat_low_pin = EXYNOS4_GPX0(2),
+	.cw_bat_config_info = &cw201x_config_info, */
+	.dc_det_pin = EXYNOS4_GPX0(2),
+	.dc_det_level = 1,
+	.chg_mode_sel_pin = NULL,
+	.chg_ok_pin = NULL,
+	.bat_low_pin = NULL,
+	.cw_bat_config_info = &cw201x_config_info,
+};
+
+
 #if (defined CONFIG_BCM2079X_I2C) || (defined CONFIG_BCM2079X_I2C_MODULE)
 static struct bcm2079x_platform_data bcm2079x_pdata = {
     .irq_gpio = EXYNOS4_GPX1(1),
@@ -2658,12 +2727,9 @@ static struct i2c_board_info i2c_devs4_ac100[] __initdata = {
 	 		I2C_BOARD_INFO("ac100", 0x1a),
 	 },
 };
+
 static struct i2c_board_info i2c_devs2[] __initdata = {
-//#ifdef CONFIG_VIDEO_TVOUT
-//	{
-//		I2C_BOARD_INFO("s5p_ddc", (0x74 >> 1)),
-//	},
-//#endif
+
 #ifdef CONFIG_QN8027_FM
 	{
 		I2C_BOARD_INFO("qn8027", 0x2c),
@@ -2673,14 +2739,34 @@ static struct i2c_board_info i2c_devs2[] __initdata = {
 	{
 		I2C_BOARD_INFO("lm75a", (0x48)),
 	},
+
+#ifdef CONFIG_CW2015_BATTERY
+	{
+		I2C_BOARD_INFO("cw201x", (0xC4 >> 1)),
+		.platform_data	= &cw201x_platform_data,
+	},
+#endif
+};
+
 #if (defined CONFIG_BCM2079X_I2C) || (defined CONFIG_BCM2079X_I2C_MODULE)
+static struct i2c_board_info i2c_devs2_ap6441[] __initdata = {
+	{
+		I2C_BOARD_INFO("bcm2079x-i2c", 0x76),
+		.irq = IRQ_EINT(9),
+		.platform_data = &bcm2079x_pdata,
+	},
+
+};
+
+static struct i2c_board_info i2c_devs2_ap6493[] __initdata = {
 	{
 		I2C_BOARD_INFO("bcm2079x-i2c", 0x77),
 		.irq = IRQ_EINT(9),
 		.platform_data = &bcm2079x_pdata,
 	},
-#endif
+
 };
+#endif 
 
 #ifdef CONFIG_TOUCHSCREEN_VTL_CT36X
 #include "../../../drivers/oem_drv/touchscreen/vtl_ts/vtl_ts.h"
@@ -2759,72 +2845,10 @@ static struct i2c_board_info i2c_devs6[] __initdata = {
 	},
 };
 
-struct cw_bat_platform_data {
-
-        int is_dc_charge;
-        int dc_det_pin;
-        int dc_det_level;
-
-        int is_usb_charge;
-        int chg_mode_sel_pin;
-        int chg_mode_sel_level;
-
-        int bat_low_pin;
-        int bat_low_level;
-        int chg_ok_pin;
-        int chg_ok_level;
-        u8* cw_bat_config_info;
-};
-
-#define SIZE_BATINFO    64 
-/*
-static u8 cw201x_config_info[SIZE_BATINFO] = {
-		0x15, 0x42, 0x60, 0x59, 0x52,
-		0x58, 0x4D, 0x48, 0x48, 0x44,
-		0x44, 0x46, 0x49, 0x48, 0x32,
-		0x24, 0x20, 0x17, 0x13, 0x0F,
-		0x19, 0x3E, 0x51, 0x45, 0x08,
-		0x76, 0x0B, 0x85, 0x0E, 0x1C,
-		0x2E, 0x3E, 0x4D, 0x52, 0x52,
-		0x57, 0x3D, 0x1B, 0x6A, 0x2D,
-		0x25, 0x43, 0x52, 0x87, 0x8F,
-		0x91, 0x94, 0x52, 0x82, 0x8C,
-		0x92, 0x96, 0xFF, 0x7B, 0xBB,
-		0xCB, 0x2F, 0x7D, 0x72, 0xA5,
-		0xB5, 0xC1, 0x46, 0xAE};
-*/
-static u8 cw201x_config_info[SIZE_BATINFO] = {
-		0x14,0x83,0x59,0x59,0x55,0x50,0x4D,0x4C,0x47,0x46,
-		0x3E,0x38,0x2A,0x29,0x2E,0x20,0x13,0x0C,0x0A,0x10,
-		0x16,0x35,0x4B,0x6B,0x85,0x82,0x0C,0xCD,0x22,0x43,
-		0x48,0x48,0x45,0x47,0x4B,0x4C,0x3D,0x13,0x34,0x00,
-		0x00,0x1B,0x52,0x87,0x8F,0x91,0x94,0x52,0x82,0x8C,
-		0x92,0x96,0x4C,0x54,0x9C,0xCB,0x2F,0x7D,0x72,0xA5,
-		0xB5,0xC1,0x46,0xAE};
-struct cw_bat_platform_data cw201x_platform_data = {
-/*	.dc_det_pin = NULL,
-	.chg_mode_sel_pin = NULL,
-	.chg_ok_pin = NULL,
-	.bat_low_pin = EXYNOS4_GPX0(2),
-	.cw_bat_config_info = &cw201x_config_info, */
-	.dc_det_pin = EXYNOS4_GPX0(2),
-	.dc_det_level = 1,
-	.chg_mode_sel_pin = NULL,
-	.chg_ok_pin = NULL,
-	.bat_low_pin = NULL,
-	.cw_bat_config_info = &cw201x_config_info,
-};
-
 static struct i2c_board_info i2c_devs7[] __initdata = {
 	#ifdef CONFIG_TOUCHSCREEN_PIXCIR
 	{
 		I2C_BOARD_INFO("pixcir-ts", 0x5C),
-	},
-	#endif
-	#ifdef CONFIG_CW2015_BATTERY
-	{
-		I2C_BOARD_INFO("cw201x", (0xC4 >> 1)),
-		.platform_data	= &cw201x_platform_data,
 	},
 	#endif
 };
@@ -4136,6 +4160,12 @@ static void __init smdk4x12_machine_init(void)
 
 	s3c_i2c2_set_platdata(NULL);
 	i2c_register_board_info(2, i2c_devs2, ARRAY_SIZE(i2c_devs2));
+#if (defined CONFIG_BCM2079X_I2C) || (defined CONFIG_BCM2079X_I2C_MODULE)
+	if(!strcmp(g_selected_wifi,"gb86441"))
+		i2c_register_board_info(2, i2c_devs2_ap6441, ARRAY_SIZE(i2c_devs2_ap6441));
+	else
+		i2c_register_board_info(2, i2c_devs2_ap6493, ARRAY_SIZE(i2c_devs2_ap6493));
+#endif
 
 	s3c_i2c3_set_platdata(NULL);
 	i2c_register_board_info(3, i2c_devs3, ARRAY_SIZE(i2c_devs3));
@@ -4160,10 +4190,7 @@ static void __init smdk4x12_machine_init(void)
 
 	s3c_i2c7_set_platdata(NULL);
 
-	if (strstr(g_selected_utmodel, "s106")) {
-		i2c_register_board_info(2, i2c_devs7, ARRAY_SIZE(i2c_devs7));
-	}else
-		i2c_register_board_info(7, i2c_devs7, ARRAY_SIZE(i2c_devs7));
+	i2c_register_board_info(7, i2c_devs7, ARRAY_SIZE(i2c_devs7));
 
 #ifdef CONFIG_ANDROID_PMEM
 	android_pmem_set_platdata();
@@ -4212,7 +4239,7 @@ static void __init smdk4x12_machine_init(void)
 #endif
 
 #ifdef CONFIG_EXYNOS4_DEV_DWMCI
-	if (strstr(g_selected_utmodel, "d816")||strstr(g_selected_utmodel, "d720")) {
+	if (strstr(g_selected_utmodel, "d816")||CHECK_TABLET("d720","1")) {
 		exynos_dwmci_pdata.caps &= ~(MMC_CAP_8_BIT_DATA);
 		exynos_dwmci_pdata.caps |= (MMC_CAP_4_BIT_DATA);
 	}
@@ -4232,7 +4259,7 @@ static void __init smdk4x12_machine_init(void)
 #ifdef CONFIG_S3C_DEV_HSMMC1
 	if (strstr(g_selected_utmodel, "d816")) {
 		s3c_sdhci1_set_platdata(&smdk4x12_hsmmc1_pdata_d816);
-	}else if(strstr(g_selected_utmodel, "d720")){
+	}else if(CHECK_TABLET("d720","1")){
 		s3c_sdhci1_set_platdata(&smdk4x12_hsmmc1_pdata_d720);
 	}
 
@@ -4451,7 +4478,7 @@ static void __init smdk4x12_machine_init(void)
 
 	platform_add_devices(smdk4x12_devices, ARRAY_SIZE(smdk4x12_devices));
 #ifdef CONFIG_S3C_DEV_HSMMC1
-	if (strstr(g_selected_utmodel, "d816")||strstr(g_selected_utmodel, "d720")) {
+	if (strstr(g_selected_utmodel, "d816")||CHECK_TABLET("d720","1")) {
 		platform_add_devices(hsmm1_d816_devices, ARRAY_SIZE(hsmm1_d816_devices));
 	}
 #endif	
