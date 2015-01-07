@@ -91,6 +91,8 @@ extern int ut_adc_bat_get_value(void);
 extern int ut_adc_bat_get_vol(void);
 #endif
 
+  extern char g_device_gauge[32];
+
 static  int __init select_battery_cap(char *str)
 {
 	if(strlen(str)>0) {
@@ -782,7 +784,8 @@ static void axp_change(struct axp_charger *charger)
 			axp_clr_bits(charger->master, AXP22_CHARGE_VBUS, 0x40);
 	}
   flag_state_change = 1;
-  power_supply_changed(&charger->batt);
+  if (strstr(g_device_gauge, "axp"))
+  	power_supply_changed(&charger->batt);
 }
 
 static void axp_presslong(struct axp_charger *charger)
@@ -842,7 +845,9 @@ static void axp_capchange(struct axp_charger *charger)
     Bat_Cap_Buffer[k] = charger->rest_vol;
   }
   Total_Cap = charger->rest_vol * AXP_VOL_MAX;
-  power_supply_changed(&charger->batt);
+
+  if (strstr(g_device_gauge, "axp"))
+  	power_supply_changed(&charger->batt);
 }
 
 static int axp_battery_event(struct notifier_block *nb, unsigned long event,
@@ -1435,6 +1440,9 @@ static void axp_charging_monitor(struct work_struct *work)
 
 	uint8_t low_pow_level = 56;
 
+	if (!strstr(g_device_gauge, "axp"))
+		return 0;
+
 	charger = container_of(work, struct axp_charger, work.work);
 	pre_rest_vol = charger->rest_vol;
 	pre_bat_curr_dir = charger->bat_current_direction;
@@ -1518,6 +1526,9 @@ static void axp_usb(struct work_struct *work)
 	int var;
 	uint8_t tmp,val;
 	struct axp_charger *charger;
+
+	if (!strstr(g_device_gauge, "axp"))
+		return 0;
 
 	charger = axp_charger;
 	if(axp_debug)
@@ -1717,25 +1728,28 @@ static int axp_battery_probe(struct platform_device *pdev)
   if (ret)
     goto err_notifier;
 
+
   axp_battery_setup_psy(charger);
-  ret = power_supply_register(&pdev->dev, &charger->batt);
-  if (ret)
-    goto err_ps_register;
+  if (strstr(g_device_gauge, "axp")) {
+	  ret = power_supply_register(&pdev->dev, &charger->batt);
+	  if (ret)
+	    goto err_ps_register;
 
-	axp_read(charger->master,AXP22_CHARGE_STATUS,&val);
-	if(!((val >> 1) & 0x01)){
-  	ret = power_supply_register(&pdev->dev, &charger->ac);
-  	if (ret){
-    	power_supply_unregister(&charger->batt);
-    	goto err_ps_register;
-  	}
-  }
+		axp_read(charger->master,AXP22_CHARGE_STATUS,&val);
+		if(!((val >> 1) & 0x01)){
+	  	ret = power_supply_register(&pdev->dev, &charger->ac);
+	  	if (ret){
+	    	power_supply_unregister(&charger->batt);
+	    	goto err_ps_register;
+	  	}
+	  }
 
-  ret = power_supply_register(&pdev->dev, &charger->usb);
-  if (ret){
-    power_supply_unregister(&charger->ac);
-    power_supply_unregister(&charger->batt);
-    goto err_ps_register;
+	  ret = power_supply_register(&pdev->dev, &charger->usb);
+	  if (ret){
+	    power_supply_unregister(&charger->ac);
+	    power_supply_unregister(&charger->batt);
+	    goto err_ps_register;
+	  }
   }
 
 #if defined (CONFIG_AXP_DEBUG)
@@ -2290,7 +2304,7 @@ static int axp22_resume(struct platform_device *dev)
     axp_read(charger->master, AXP22_CAP,&val);
     charger->rest_vol = val & 0x7f;
 
-    if(charger->rest_vol - pre_rest_vol){
+    if((charger->rest_vol - pre_rest_vol)&&strstr(g_device_gauge, "axp")){
     	printk("battery vol change: %d->%d \n", pre_rest_vol, charger->rest_vol);
     	pre_rest_vol = charger->rest_vol;
     	axp_write(charger->master,AXP22_DATA_BUFFER1,charger->rest_vol | 0x80);
