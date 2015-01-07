@@ -9,6 +9,11 @@
 extern char g_selected_utmodel[32];
 #define CHECK_UTMODEL(str)  UTCHECK(g_selected_utmodel,str)
 
+extern char g_selected_pcb[32];
+#define CHECK_PCB(str) UTCHECK(g_selected_pcb,str)
+
+#define CHECK_TABLET(name,pcb)  (CHECK_UTMODEL(name)&&CHECK_PCB(pcb))
+
 extern char g_selected_bltype[32] ;
 #define CHECK_BLTYPE(str)  UTCHECK(g_selected_bltype,str)
 

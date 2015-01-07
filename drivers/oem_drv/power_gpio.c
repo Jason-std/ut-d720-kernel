@@ -512,7 +512,7 @@ static int power_cam_eldo3_af(struct power_gpio_node node , int on)
 	regulator_put(vdd18_cam_regulator);
 }
 
-static struct power_gpio_node s_gpio_node_d720[] =
+static struct power_gpio_node s_gpio_node_d720_v1[] =
 {
 
 	{POWER_5V_EN,			EXYNOS4_GPK1(2), 1, 1, NULL},
@@ -530,6 +530,58 @@ static struct power_gpio_node s_gpio_node_d720[] =
 //	{POWER_GSM_SW,		GPIO_GSM_POWER_EN, 1, 1, power_gsm_sdio},
 	{POWER_LCD33_EN,		EXYNOS4212_GPM2(3), 1, 1, NULL},
 	{POWER_LCD18_EN,		EXYNOS4212_GPM2(0), 0, 1, NULL},  // notice: Low for enable
+
+	{POWER_LVDS_PD,		EXYNOS4212_GPM2(4), 1, 1, NULL},
+	{POWER_BL_EN,			EXYNOS4212_GPM4(0), 1, 1, NULL},
+
+	{POWER_HUB_RST,		EXYNOS4212_GPM3(2), 1, 1, NULL},
+	{POWER_HUB_CON,		EXYNOS4212_GPM3(3), 1, 1, NULL},
+	{POWER_HUB2_RST,		GPIO_USB_HUB2_RESET, 0, 1, usb_hub_reset},
+
+	{POWER_SPK_EN,			EXYNOS4212_GPM1(4), 1, 1, power_spk},
+	{POWER_USB_SW,			EXYNOS4212_GPM1(5), 1, 1, NULL},
+	{POWER_MOTOR_EN,		EXYNOS4212_GPM1(6), 1, 1, NULL},
+	{POWER_TS_RST,			EXYNOS4212_GPM3(4), 1, 1, NULL},
+
+	{POWER_STATE_AC,		EXYNOS4_GPX0(2), 1, 0, NULL},  //EINT2
+
+	{POWER_FCAM_28V,	                             0, 1, 1, power_cam_dldo2_2v8}, 
+	{POWER_FCAM_18V,	     GPIO_EXAXP22(1), 1, 1, NULL}, 
+	{POWER_FCAM_PD,	EXYNOS4_GPL0(1), 1, 1, NULL}, 
+	{POWER_FCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
+
+	{POWER_BCAM_28V,	                             0, 1, 1, power_cam_dldo2_2v8}, 
+	{POWER_BCAM_18V,	     GPIO_EXAXP22(1), 1, 1, NULL}, 
+	{POWER_BCAM_PD,	EXYNOS4_GPL0(0), 1, 1, NULL}, 
+	{POWER_BCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
+
+	{POWER_CAM_AF,	                                    0,  1, 1, power_cam_eldo3_af}, 
+
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, delay_1_ms},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+	{POWER_ITEM_INVALID,	EXYNOS4_GPL1(6), 1, 1, NULL},      // unused, only for expand array size
+};
+
+static struct power_gpio_node s_gpio_node_d720_v4[] =
+{
+
+	{POWER_5V_EN,			EXYNOS4_GPK1(2), 1, 1, NULL},
+	{POWER_INT_EN,			EXYNOS4212_GPM3(7), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
+
+	{POWER_GPS_EN,			EXYNOS4212_GPM4(6), 1, 1, NULL},
+
+#if 1
+	{POWER_WIFI_EN,			EXYNOS4212_GPM3(1), 1, 1, NULL},
+	{POWER_WIFI_LDO,		EXYNOS4_GPL1(1), 1, 1, NULL},
+#endif
+	{POWER_GSM_SW,		GPIO_GSM_POWER_ON_OFF, 0, 1, gsm_power_ctl,gsm_power_read},
+	
+//	{POWER_GSM_WUP,		GPIO_GSM_WAKE_IN, 1, 1, NULL},
+//	{POWER_GSM_SW,		GPIO_GSM_POWER_EN, 1, 1, power_gsm_sdio},
+	{POWER_LCD33_EN,		EXYNOS4212_GPM2(3), 1, 1, NULL},
+	{POWER_LCD18_EN,		EXYNOS4212_GPM2(0), 1, 1, NULL},  // notice: Low for enable
 
 	{POWER_LVDS_PD,		EXYNOS4212_GPM2(4), 1, 1, NULL},
 	{POWER_BL_EN,			EXYNOS4212_GPM4(0), 1, 1, NULL},
@@ -948,13 +1000,22 @@ static void init_gpio_nodes(void)
 		memcpy(s_gpio_node, s_gpio_node_d816, sizeof(s_gpio_node_d816));
 	}
 
-	if(strstr(g_selected_utmodel, "d720"))
+	if(CHECK_TABLET("d720","1"))
 	{
 		printk(KERN_DEBUG "power_gpio: detected version1 board type PCB.\n");
 		for(i = 0; i < ARRAY_SIZE(s_gpio_node); i++) {
 			s_gpio_node[i].index = POWER_ITEM_INVALID;
 		}
-		memcpy(s_gpio_node, s_gpio_node_d720, sizeof(s_gpio_node_d720));
+		memcpy(s_gpio_node, s_gpio_node_d720_v1, sizeof(s_gpio_node_d720_v1));
+	}
+
+	if(CHECK_TABLET("d720","4"))
+	{
+		printk(KERN_DEBUG "power_gpio: detected version1 board type PCB.\n");
+		for(i = 0; i < ARRAY_SIZE(s_gpio_node); i++) {
+			s_gpio_node[i].index = POWER_ITEM_INVALID;
+		}
+		memcpy(s_gpio_node, s_gpio_node_d720_v4, sizeof(s_gpio_node_d720_v4));
 	}
 
 	if(strstr(g_selected_utmodel, "d721"))
