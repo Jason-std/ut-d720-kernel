@@ -39,7 +39,7 @@
 
 #include <mach/gpio.h>
 
-
+#include <urbetter/check.h>
 #include "vtl_ts.h"
 #include "chip.h"
 #include "apk.h"
@@ -890,6 +890,10 @@ struct i2c_driver vtl_ts_driver  = {
 int __init vtl_ts_init(void)
 {
 	DEBUG();
+
+	if(!CHECK_TP("vtl"))
+		return 0;
+	
 	 if(g_touchscreen_init)
 	 	return 0;
 	return i2c_add_driver(&vtl_ts_driver);

@@ -50,6 +50,8 @@
 #include <linux/irq.h>
 #include "gt9xx.h"
 
+#include <urbetter/check.h>
+
 #if GTP_ICS_SLOT_REPORT
     #include <linux/input/mt.h>
 #endif
@@ -2948,6 +2950,9 @@ static int __devinit goodix_ts_init(void)
 {
     s32 ret;
 
+    if(!CHECK_TP("goodix"))
+        return 0;
+	
     GTP_DEBUG_FUNC();   
     GTP_INFO("GTP driver installing...");
     goodix_wq = create_singlethread_workqueue("goodix_wq");
