@@ -112,8 +112,8 @@ config TOUCHSCREEN_FT5X0X_105
           To compile this driver as a module, choose M here: the
           module will be called s3c_ts.
 
-config TOUCHSCREEN_GT9XX
-        tristate "touchscreen driver  GT9XX"
+config TOUCHSCREEN_GT911
+        tristate "touchscreen driver  GT911"
         default y
         help
           Say Y here to enable the driver for the touchscreen on the
