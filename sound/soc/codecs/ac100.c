@@ -39,7 +39,7 @@
 #include <mach/gpio.h>
 #include "ac100.h"
 //#include <oem_ut/power_gpio.h>
-#include "../../../drivers/oem_drv/power_gpio.h"
+#include "urbetter/power_gpio.h"
 
 /*i2c_bus id, according to your platform i2c bus id to modify it. */
 static unsigned int twi_id = 0;

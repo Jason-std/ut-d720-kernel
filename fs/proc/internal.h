@@ -8,6 +8,8 @@
  * as published by the Free Software Foundation; either version
  * 2 of the License, or (at your option) any later version.
  */
+#ifndef FS_PROC_INTERNAL_H
+#define FS_PROC_INTERNAL_H
 
 #include <linux/proc_fs.h>
 
@@ -145,3 +147,4 @@ int proc_setattr(struct dentry *dentry, struct iattr *attr);
 extern const struct inode_operations proc_ns_dir_inode_operations;
 extern const struct file_operations proc_ns_dir_operations;
 
+#endif

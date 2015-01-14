@@ -30,7 +30,7 @@
 #include <linux/slab.h>
 
 #include <linux/module.h> 
-#include "../oem_drv/power_gpio.h"
+#include "urbetter/power_gpio.h"
 
 #include <linux/wakelock.h>
 
@@ -1301,7 +1301,7 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
 			pr_err("%s : CHG_INT request port erron", __func__);
 		} else {
 			s3c_gpio_cfgpin(gpio, S3C_GPIO_SFN(0xF));
-			s3c_gpio_setpull(gpio, S3C_GPIO_PULL_UP);
+		//	s3c_gpio_setpull(gpio, S3C_GPIO_PULL_UP);
 			//gpio_free(gpio);
 		}
 		

@@ -449,9 +449,7 @@ static int s3c_pm_enter(suspend_state_t state)
 
 	S3C_PMDBG("%s(%d)\n", __func__, state);
 
-#if 1	//Urbest+ for ut7gm
-	ut7gm_pm_suspend();
-#endif
+
 	ut4412_setup_sleepin_eint();
 
 	if (pm_cpu_prep == NULL || pm_cpu_sleep == NULL) {
@@ -543,7 +541,6 @@ static int s3c_pm_enter(suspend_state_t state)
 	/* ok, let's return from sleep */
 #if 1	//urbetter+ for ut7gm
 	ut4412_setup_wakeout_eint();
-	ut7gm_pm_wakeup();
 #endif
 
 	S3C_PMDBG("S3C PM Resume (post-restore)\n");

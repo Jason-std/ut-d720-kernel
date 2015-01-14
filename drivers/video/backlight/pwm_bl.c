@@ -21,7 +21,7 @@
 #include <linux/pwm_backlight.h>
 #include <linux/slab.h>
 
-#include "../../oem_drv/power_gpio.h"
+#include "urbetter/power_gpio.h"
 
 
 // add by ericli 2012-12-26

@@ -3,6 +3,7 @@ source drivers/oem_drv/nfc/Kconfig
 source drivers/oem_drv/touchscreen/Kconfig
 source drivers/oem_drv/mtk_wcn_combo/Kconfig
 source "drivers/oem_drv/oem_gpio_cfg/Kconfig"
+source "drivers/oem_drv/power_gpio/Kconfig"
 
 config QN8027_FM	
     bool "QN8027 FM Radio Transmitter Support"
@@ -36,12 +37,6 @@ config URBETTER_SIM_DETECT
 	default y
 	---help---
 		Say Y here if you want to support dock keyboard!
-
-config URBETTER_POWER_GPIO
-	tristate "urbest Power GPIOs"
-	default y
-	---help---
-	  Say Y here if you want to support urbest power GPIO.
 
 menu "oem_drv button driver"
 	  

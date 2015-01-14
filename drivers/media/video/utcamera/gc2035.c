@@ -32,8 +32,7 @@
 #ifdef CONFIG_VIDEO_SAMSUNG_V4L2
 #include <linux/videodev2_samsung.h>
 #endif
-#include "../../../oem_drv/power_gpio.h"
-
+#include "urbetter/power_gpio.h"
 static int output_format_index = 0;
 #define GC2035_DRIVER_NAME	"GC2035"
 

@@ -1,0 +1,37 @@
+menu "power gpio drivers"
+
+config URBETTER_POWER_GPIO	
+    bool "Urbetter Power Gpio Driver Support"
+    default y	
+    ---help---	  
+      If you say Y here, you can use power_gpio  
+
+config POWER_GPIO_D720_V1	
+    bool "Power Gpio Driver for D720 V1"
+    depends on URBETTER_POWER_GPIO
+    default y	
+    ---help---	  
+      If you say Y here, you can use power_gpio for d720 v1  
+
+config POWER_GPIO_D720_V4	
+    bool "Power Gpio Driver for D720 V4"
+    depends on URBETTER_POWER_GPIO
+    default y	
+    ---help---	  
+      If you say Y here, you can use power_gpio for d720 v4  
+
+config POWER_GPIO_S106	
+    bool "Power Gpio Driver for S106"
+    depends on URBETTER_POWER_GPIO
+    default y	
+    ---help---	  
+      If you say Y here, you can use power_gpio for S106  	
+
+config POWER_GPIO_D1011	
+    bool "Power Gpio Driver for D1011"
+    depends on URBETTER_POWER_GPIO
+    default y	
+    ---help---	  
+      If you say Y here, you can use power_gpio for D1011 
+
+endmenu

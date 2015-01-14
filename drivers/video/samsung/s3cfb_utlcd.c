@@ -3,7 +3,7 @@
 #include <linux/leds.h>
 #include "s3cfb.h"
 
-#include "../../oem_drv/power_gpio.h"
+#include "urbetter/power_gpio.h"
 
 
 //******************* DP501 I2C *******************************

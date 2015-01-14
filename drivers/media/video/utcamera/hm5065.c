@@ -36,8 +36,7 @@
 #include <linux/videodev2_samsung.h>
 #endif
 
-#include "../../../oem_drv/power_gpio.h"
-
+#include "urbetter/power_gpio.h"
 //static int output_format_index = 0;
 #define BACK_SENSOR_DRIVER_NAME	"HM5065" 
 

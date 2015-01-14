@@ -43,7 +43,7 @@
 
 #include <asm/mach-types.h>
 
-#include "../../oem_drv/power_gpio.h"
+#include "urbetter/power_gpio.h"
 #include <linux/gpio.h>
 #include <linux/delay.h>
 #include <plat/gpio-cfg.h>

@@ -58,7 +58,7 @@
 #include "hw_if/hw_if.h"
 #include "s5p_tvout_ctrl.h"
 
-#include "./../../../../oem_drv/power_gpio.h"
+#include "urbetter/power_gpio.h"
 
 #ifdef CONFIG_HDMI_14A_3D
 static struct s5p_hdmi_v_format s5p_hdmi_v_fmt[] = {

@@ -79,7 +79,40 @@ int read_power_item_value(int index);
 //set ON/OFF status immediately
 int write_power_item_value(int index, int value);
 
-//set ON/OFF status with debounce in milliseconds.
-int post_power_item_value(int index, int value, int ms_debounce);
+
+struct power_gpio_node
+{
+	enum power_item index;
+	unsigned int pin;
+	int polarity;				    //0: low for enable, 1: high for enable
+	int direction;				    //0: input only,     1: input/output
+	int (*write_func)(struct power_gpio_node , int);		//extra power function
+	int (*read_func)(struct power_gpio_node);		//extra read function
+};
+
+struct power_gpio_oem
+{
+	struct power_gpio_node * pnode;
+	int count;
+	char * name;
+	char * pcb;
+	void (*power_gpio_boot_init)(struct power_gpio_oem *);
+};
+
+int power_gpio_register(struct power_gpio_oem * p);
+int power_gpio_unregister(struct power_gpio_oem * p);
+
+#define POWER_GPIO_REG(NODE)  \
+static __init __power_gpio_reg()  \
+{                                                    \
+	power_gpio_register(NODE);  \
+}       \
+static __exit __power_gpio_unreg()        \
+{                                                             \
+	power_gpio_unregister(NODE); \
+}        \
+fs_initcall(__power_gpio_reg);   \
+module_exit(__power_gpio_unreg);  \
+
 #endif //POWER_GPIO_INCLUDED
 
