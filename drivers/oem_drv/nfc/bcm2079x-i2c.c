@@ -48,6 +48,7 @@
 #include <plat/gpio-cfg.h>
 #include <mach/regs-gpio.h>
 #include <mach/gpio.h>
+#include <urbetter/check.h>
 
 //#define DEBUG_BCM2079X_I2C_IRQ
 #undef DEBUG_BCM2079X_I2C_IRQ
@@ -287,6 +288,7 @@ static ssize_t bcm2079x_dev_read(struct file *filp, char __user *buf,
 	total = 0;
 	len = 0;
 
+
 	if (bcm2079x_dev->count_irq > 0)
 		bcm2079x_dev->count_irq--;
 
@@ -317,12 +319,14 @@ static ssize_t bcm2079x_dev_read(struct file *filp, char __user *buf,
 				break;
 
 			default:
+				printk("enter %s,packet unknown\n",__func__);
 				len = 0;					/*Unknown packet byte */
 				break;
 		} /* switch*/
 
 		/** make sure full packet fits in the buffer
 		**/
+		udelay(1000); // add by Leslie
 		if (len > 0 && (len + total) <= count) {
 			/** read the remainder of the packet.
 			**/
@@ -497,6 +501,9 @@ static int bcm2079x_probe(struct i2c_client *client,
 		dev_err(&client->dev, "need I2C_FUNC_I2C\n");
 		return -ENODEV;
 	}
+
+	if(CHECK_UTMODEL("d1011"))
+		platform_data->en_gpio = EXYNOS4_GPL0(6);
 
 	ret = gpio_request(platform_data->irq_gpio, "nfc_int");
 	if (ret)
