@@ -2722,11 +2722,6 @@ static struct bcm2079x_platform_data bcm2079x_pdata = {
 };
 #endif
 
-static struct i2c_board_info i2c_devs4_ac100[] __initdata = {
-	 {
-	 		I2C_BOARD_INFO("ac100", 0x1a),
-	 },
-};
 
 static struct i2c_board_info i2c_devs2[] __initdata = {
 
@@ -2798,6 +2793,13 @@ static struct i2c_board_info i2c_devs3[] __initdata = {
 	{ I2C_BOARD_INFO("dp501_p2", (0x14 >> 1)), },
 	{ I2C_BOARD_INFO("gslx680", 0x40),	}
 };
+
+static struct i2c_board_info i2c_devs4_bh1721[] __initdata = {
+	 {
+		I2C_BOARD_INFO("bh1721",0x23),
+	},
+};
+
 static struct i2c_board_info i2c_devs4_rt5621[] __initdata = {
 	 {
 	 		I2C_BOARD_INFO("rt5621", 0x1a),
@@ -2806,6 +2808,12 @@ static struct i2c_board_info i2c_devs4_rt5621[] __initdata = {
 static struct i2c_board_info i2c_devs4_wm8978[] __initdata = {
 	 {
 	 		I2C_BOARD_INFO("wm8978", 0x1a),
+	 },
+};
+
+static struct i2c_board_info i2c_devs4_ac100[] __initdata = {
+	 {
+	 		I2C_BOARD_INFO("ac100", 0x1a),
 	 },
 };
 
@@ -4179,6 +4187,8 @@ static void __init smdk4x12_machine_init(void)
 	}else if(!strcmp(g_selected_codec,"ac100")){
 		i2c_register_board_info(4, i2c_devs4_ac100, ARRAY_SIZE(i2c_devs4_ac100));
 	}
+	if(CHECK_UTMODEL("d1011"))
+		i2c_register_board_info(4, i2c_devs4_bh1721, ARRAY_SIZE(i2c_devs4_bh1721));
 
 	s3c_i2c5_set_platdata(NULL);
 	i2c_register_board_info(5, i2c_devs5, ARRAY_SIZE(i2c_devs5));

@@ -17,6 +17,7 @@
 #include <linux/proc_fs.h>
 #include "../../fs/proc/internal.h"
 
+#include <urbetter/check.h>
 #ifdef CONFIG_HAS_WAKELOCK
 #include <linux/wakelock.h>
 #include <linux/earlysuspend.h>
@@ -156,6 +157,10 @@ static int __devinit bh1721_i2c_probe(struct i2c_client * client, const struct i
 	  chip = kzalloc(sizeof *chip, GFP_KERNEL);
 	 if (!chip)
 	      return -ENOMEM;
+
+	if(CHECK_UTMODEL("d1011") && (client->adapter->nr==5))
+		return -1;
+	 
 	i2c_set_clientdata(client, chip);
 	
 	  bh1721_i2c_client = client;
