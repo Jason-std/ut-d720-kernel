@@ -23,6 +23,8 @@
 #include <linux/suspend.h>
 #endif
 
+#include <urbetter/check.h>
+
 //#define DEBUG 1
 #define DEBUG_SENSOR
 #ifdef DEBUG_SENSOR
@@ -971,6 +973,9 @@ static int __init mma7660_init(void)
 {
     int ret;
 	printk(KERN_INFO "mma7660 G-Sensor driver: init..\n");
+
+	if(CHECK_UTMODEL("d1011"))
+		return ;
 
 	check_sensors_model();
 
