@@ -71,16 +71,7 @@ static void power_gpio_on_boot(void)
 	gpio_direction_output(GPIO_USB_HUB2_RESET, GPIO_LEVEL_LOW);	
 }
 
-
-static const struct power_gpio_oem gpio_oem_d720_v4={
-	.pnode = s_gpio_node_d720_v4,
-	.count = ARRAY_SIZE(s_gpio_node_d720_v4),
-	.name  = "d720",
-	.pcb    = "4",
-	.power_gpio_boot_init = power_gpio_on_boot,
-};
-
-POWER_GPIO_REG(&gpio_oem_d720_v4);
+REGISTER_POWER_GPIO(s_gpio_node_d720_v4,d720,4,power_gpio_on_boot);
 
 MODULE_DESCRIPTION("power_gpio config proc file");
 MODULE_LICENSE("GPL");

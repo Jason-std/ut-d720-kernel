@@ -46,7 +46,7 @@ static const struct power_gpio_node s_gpio_node_d1011[] =
 	{POWER_MOTOR_EN,		EXYNOS4212_GPM1(6), 1, 1, NULL},
 
 	{POWER_STATE_AC,		EXYNOS4_GPX0(2), 1, 0, NULL},  //EINT2
-	{POWER_STATE_CHARGE,	EXYNOS4_GPX2(7), 1, 0, NULL}, //EINT23
+//	{POWER_STATE_CHARGE,	EXYNOS4_GPX2(7), 1, 0, NULL}, //EINT23
 
 	{POWER_FCAM_28V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
 	{POWER_FCAM_18V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
@@ -66,15 +66,8 @@ static void power_gpio_on_boot(void)
 	gpio_direction_output(GPIO_USB_HUB2_RESET, GPIO_LEVEL_LOW);	
 }
 
+REGISTER_POWER_GPIO(s_gpio_node_d1011,d1011,1,power_gpio_on_boot);
 
-static const struct power_gpio_oem gpio_oem_d1011={
-	.pnode = s_gpio_node_d1011,
-	.name  = "d1011",
-	.power_gpio_boot_init = power_gpio_on_boot,
-	.count = ARRAY_SIZE(s_gpio_node_d1011),
-};
-
-POWER_GPIO_REG(&gpio_oem_d1011);
 
 MODULE_DESCRIPTION("power_gpio config proc file");
 MODULE_LICENSE("GPL");

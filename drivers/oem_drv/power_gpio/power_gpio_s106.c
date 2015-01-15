@@ -67,15 +67,7 @@ static void power_gpio_on_boot(void)
 	gpio_direction_output(GPIO_USB_HUB2_RESET, GPIO_LEVEL_LOW);	
 }
 
-
-static const struct power_gpio_oem gpio_oem_s106={
-	.pnode = s_gpio_node_s106,
-	.count = ARRAY_SIZE(s_gpio_node_s106),
-	.name  = "s106",
-	.power_gpio_boot_init = power_gpio_on_boot,
-};
-
-POWER_GPIO_REG(&gpio_oem_s106);
+REGISTER_POWER_GPIO(s_gpio_node_s106,s106,1,power_gpio_on_boot);
 
 MODULE_DESCRIPTION("power_gpio config proc file");
 MODULE_LICENSE("GPL");

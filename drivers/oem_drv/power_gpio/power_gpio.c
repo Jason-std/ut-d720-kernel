@@ -128,6 +128,9 @@ int read_power_item_value(int index)
 	{
 		if(p_gpio_node[i].index == index)
 		{
+			s3c_gpio_setpull(p_gpio_node[i].pin, S3C_GPIO_PULL_NONE);
+			gpio_direction_input(p_gpio_node[i].pin);
+		
 			P_GPIO_DEBUG("%s:i=%d,index=%d\n",__func__,i,index);
 			if(p_gpio_node[i].read_func){
 				return p_gpio_node[i].read_func(p_gpio_node[i]);
