@@ -31,6 +31,6 @@ obj-$(CONFIG_UT_LIGHTSENSOR_BH1721) +=bh1721.o
 obj-$(CONFIG_QN8027_FM) +=qn8027.o
 obj-$(CONFIG_OEM_BTN) +=oem_btn.o
 obj-y   +=e2130s_3g.o
-#obj-y   +=bq24190_charger.o
+obj-y   +=bq24190_charger.o
 
 

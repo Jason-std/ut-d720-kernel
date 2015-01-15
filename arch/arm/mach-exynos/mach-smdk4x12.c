@@ -165,7 +165,7 @@
 #if (defined CONFIG_BCM2079X_I2C) || (defined CONFIG_BCM2079X_I2C_MODULE)
 #include <linux/nfc/bcm2079x.h>
 #endif
-
+#include <linux/power/bq24190_charger.h>
 #include <urbetter/check.h>
 //int samsung_board_rev;
 
@@ -2656,6 +2656,16 @@ static struct i2c_board_info i2c_devs0[] __initdata = {
 //#endif
 //};
 
+static struct bq24190_platform_data bq24190_data = {
+	.gpio_int=EXYNOS4_GPX2(7),
+};
+
+static struct i2c_board_info i2c_devs1[] __initdata = {
+	{
+		I2C_BOARD_INFO("bq24190-charger", 0x6B),
+		.platform_data = &bq24190_data,
+	},
+};
 
 struct cw_bat_platform_data {
 
@@ -4163,8 +4173,8 @@ static void __init smdk4x12_machine_init(void)
 	s3c_i2c0_set_platdata(NULL);
 	i2c_register_board_info(0, i2c_devs0, ARRAY_SIZE(i2c_devs0));
 
-//	s3c_i2c1_set_platdata(NULL);
-//	i2c_register_board_info(1, i2c_devs1, ARRAY_SIZE(i2c_devs1));
+	s3c_i2c1_set_platdata(NULL);
+	i2c_register_board_info(1, i2c_devs1, ARRAY_SIZE(i2c_devs1));
 
 	s3c_i2c2_set_platdata(NULL);
 	i2c_register_board_info(2, i2c_devs2, ARRAY_SIZE(i2c_devs2));
