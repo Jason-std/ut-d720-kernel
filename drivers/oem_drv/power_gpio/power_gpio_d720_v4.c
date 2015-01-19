@@ -64,7 +64,7 @@ static const struct power_gpio_node s_gpio_node_d720_v4[] =
 	{POWER_CAM_AF,	                                    0,  1, 1, power_cam_eldo3_af}, 
 };
 
-static void power_gpio_on_boot(void)
+static void power_gpio_on_boot(const struct power_gpio_oem * p)
 {
 	write_power_item_value(POWER_SPK_EN, 0);
 	write_power_item_value(POWER_5V_EN, 1);

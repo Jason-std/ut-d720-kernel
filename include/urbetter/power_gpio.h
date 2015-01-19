@@ -92,15 +92,15 @@ struct power_gpio_node
 
 struct power_gpio_oem
 {
-	struct power_gpio_node * pnode;
+	const struct power_gpio_node * pnode;
 	int count;
 	char * name;
 	char * pcb;
-	void (*power_gpio_boot_init)(struct power_gpio_oem *);
+	void (*power_gpio_boot_init)(const struct power_gpio_oem *);
 };
 
-int power_gpio_register(struct power_gpio_oem * p);
-int power_gpio_unregister(struct power_gpio_oem * p);
+int power_gpio_register(const struct power_gpio_oem * p);
+int power_gpio_unregister(const struct power_gpio_oem * p);
 
 
 #define SIMPLE_POWER_GPIO_OEM(node,_name,_pcb,func)  \
@@ -114,11 +114,11 @@ static const struct power_gpio_oem __gpio_oem_##_name##_v##_pcb = {  \
 
 
 #define MODULE_POWER_GPIO(NODE)  \
-static __init __power_gpio_reg()  \
+static int __init __power_gpio_reg(void)  \
 {                                                    \
-	power_gpio_register(&(NODE));  \
+	return power_gpio_register(&(NODE));  \
 }       \
-static __exit __power_gpio_unreg()        \
+static void __exit __power_gpio_unreg(void)        \
 {                                                             \
 	power_gpio_unregister(&(NODE)); \
 }        \

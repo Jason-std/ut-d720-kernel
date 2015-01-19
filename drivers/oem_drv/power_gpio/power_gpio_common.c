@@ -1,17 +1,7 @@
-#include <linux/module.h>
-#include <linux/init.h>
-#include <linux/proc_fs.h>
 #include <linux/pm.h>
-#include <linux/delay.h>
-#include <linux/timer.h>
 #include <asm/io.h>
-#include <asm/irq.h>
 #include <asm/sizes.h>
 #include <asm/mach-types.h>
-#include <asm/uaccess.h>
-
-#include "../../../fs/proc/internal.h"
-
 #include <plat/gpio-cfg.h>
 #include <linux/gpio.h>
 #include <mach/gpio.h>
@@ -21,7 +11,6 @@
 #include "urbetter/power_gpio.h"
 #include <linux/regulator/consumer.h>
 
-#include <urbetter/check.h>
 
 extern int hdmi_plug_flag;
 int power_spk( struct power_gpio_node node , int on)
@@ -42,6 +31,7 @@ int power_cam_dldo2_2v8(struct power_gpio_node node , int on)
 	else
 		regulator_disable(vdd28_cam_regulator);
 	regulator_put(vdd28_cam_regulator);
+	return 0;
 }
 
 int power_cam_eldo3_af(struct power_gpio_node node , int on)
@@ -52,6 +42,7 @@ int power_cam_eldo3_af(struct power_gpio_node node , int on)
 	else
 		regulator_disable(vdd18_cam_regulator);
 	regulator_put(vdd18_cam_regulator);
+	return 0;
 }
 
 volatile int gsm_power_switch = 0;

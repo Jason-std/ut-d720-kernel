@@ -119,7 +119,7 @@ static struct power_gpio_node gpio_node_common[] =
 };
 
 static int POWER_GPIO_COUNT=ARRAY_SIZE(gpio_node_common);
-static struct power_gpio_node * p_gpio_node=gpio_node_common;
+static const struct power_gpio_node * p_gpio_node=gpio_node_common;
 
 int read_power_item_value(int index)
 {
@@ -246,7 +246,7 @@ static void ut7gm_pm_power_off(void)
 	while(1);
 }
 
-static void power_gpio_init_common()
+static void power_gpio_init_common(void)
 {
 	if (is_axp_pmu) {
 
@@ -256,7 +256,7 @@ static void power_gpio_init_common()
 	}
 }
 
-int power_gpio_register(struct power_gpio_oem * p)
+int power_gpio_register(const struct power_gpio_oem * p)
 {
 	if(!(p->name) || !CHECK_UTMODEL(p->name))
 		return -1;
@@ -270,14 +270,15 @@ int power_gpio_register(struct power_gpio_oem * p)
 	init_request_gpio();
 	gpio_input_init();
 	p->power_gpio_boot_init(p);
+	return 0;
 }
 
-int power_gpio_unregister(struct power_gpio_oem * p)
+int power_gpio_unregister(const struct power_gpio_oem * p)
 {
 	return 0;
 }
 
-static int __init power_gpio_init(struct power_gpio_oem * p)
+static int __init power_gpio_init(void)
 {
 	int i, ret = 0;
 	struct proc_dir_entry *root_entry;

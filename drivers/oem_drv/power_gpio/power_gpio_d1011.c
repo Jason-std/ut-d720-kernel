@@ -59,7 +59,7 @@ static const struct power_gpio_node s_gpio_node_d1011[] =
 	{POWER_BCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
 };
 
-static void power_gpio_on_boot(void)
+static void power_gpio_on_boot(const struct power_gpio_oem * p)
 {
 	write_power_item_value(POWER_SPK_EN, 0);
 	write_power_item_value(POWER_5V_EN, 1);

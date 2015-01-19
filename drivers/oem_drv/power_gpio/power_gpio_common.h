@@ -1,3 +1,6 @@
+#ifndef _POWER_GPIO_COMMON_H_ 
+#define  _POWER_GPIO_COMMON_H_ 
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/proc_fs.h>
@@ -29,3 +32,4 @@ int power_cam_eldo3_af(struct power_gpio_node node , int on);
 int gsm_power_write(struct power_gpio_node node,int on);
 int gsm_power_read(struct power_gpio_node node);
 
+#endif
