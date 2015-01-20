@@ -22,7 +22,7 @@
 #include <mach/regs-clock.h>
 #include <linux/input.h>
 #include <linux/irq.h>
-
+#include <urbetter/check.h>
 
 static unsigned int SIM_DET;
 static unsigned int SIM_DET_IRQ;
@@ -235,9 +235,10 @@ static int gsm_probe(struct platform_device *dev)
 	add_timer(&gsm_timer);
 	
 	//SIM init
-	if(!strcmp(g_selected_utmodel,"d720")){
+//	if(!strcmp(g_selected_utmodel,"d720")){
+	if(CHECK_TABLET("d720","1")){
 		sim_state=1;
-		}else{
+	}else{
 	s3c_gpio_cfgpin(SIM_DET, S3C_GPIO_SFN(0xF));
 	s3c_gpio_setpull(SIM_DET, S3C_GPIO_PULL_UP);
 	ret=request_irq(SIM_DET_IRQ,hand_sim_state_irq,IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING,"SIM_DETECT", NULL);
@@ -394,7 +395,17 @@ static bool check_gsm_modules(void)
 
 	printk("%s(); %s \n",__func__, g_selected_gsmd);
 
-	if (!strncmp(g_selected_utmodel, "d720", strlen("d720"))){
+	if(CHECK_TABLET("d720","4")){
+		SIM_DET=EXYNOS4_GPX3(2);
+		SIM_DET_IRQ=gpio_to_irq(SIM_DET);
+
+		GSM_POWER_EN=EXYNOS4212_GPM1(5);
+		GSM_PWD=EXYNOS4212_GPM3(6);
+		GSM_WAKE_MODULE=EXYNOS4212_GPM3(5);
+
+		GSM_WAKE_HOST=EXYNOS4_GPX2(5);
+		GSM_WAKE_HOST_IRQ=gpio_to_irq(GSM_WAKE_HOST);	
+	}else if (!strncmp(g_selected_utmodel, "d720", strlen("d720"))){
 		SIM_DET=EXYNOS4_GPK1(0);
 		SIM_DET_IRQ=gpio_to_irq(SIM_DET);
 
@@ -402,7 +413,7 @@ static bool check_gsm_modules(void)
 		GSM_PWD=EXYNOS4212_GPM3(6);
 		GSM_WAKE_MODULE=EXYNOS4212_GPM3(5);
 
-		GSM_WAKE_HOST=EXYNOS4_GPX3(6);
+		GSM_WAKE_HOST=EXYNOS4_GPX2(5);
 		GSM_WAKE_HOST_IRQ=gpio_to_irq(GSM_WAKE_HOST);
 	}else{
 		SIM_DET=GPIO_SIM_PLUG;
