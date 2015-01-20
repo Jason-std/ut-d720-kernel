@@ -29,6 +29,7 @@
 #include <plat/gpio-cfg.h>
 #include <linux/slab.h>
 
+#include <urbetter/check.h>
 #include <linux/module.h> 
 #include "urbetter/power_gpio.h"
 
@@ -95,7 +96,7 @@ struct cw_battery {
         struct delayed_work battery_delay_work;
         struct delayed_work dc_wakeup_work;
         struct delayed_work bat_low_wakeup_work;
-        const struct cw_bat_platform_data *plat_data;
+        struct cw_bat_platform_data *plat_data;
 	 struct wake_lock bat_wake_lock;	
 
         struct power_supply rk_bat;
@@ -1195,6 +1196,15 @@ static irqreturn_t bat_low_detect_irq_handler(int irq, void *dev_id)
 }
 #endif
 
+static u8 cw201x_config_info_d720_v4[SIZE_BATINFO] = {
+		0x15,0x54,0x7C,0x72,0x66,0x65,0x59,0x59,0x57,0x58,
+		0x54,0x50,0x4E,0x49,0x46,0x40,0x3A,0x38,0x2B,0x1D,
+		0x21,0x1B,0x22,0x15,0x24,0x1F,0x0D,0x71,0x57,0x87,
+		0x8D,0x8B,0x8E,0x8D,0x91,0x90,0x30,0x30,0x8E,0x02,
+		0x03,0x2B,0x52,0x87,0x8F,0x91,0x94,0x52,0x82,0x8C,
+		0x92,0x96,0x78,0x75,0x75,0xCB,0x2F,0x7D,0x72,0xA5,
+		0xB5,0xC1,0xAB,0x29,};
+
 static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
         struct cw_battery *cw_bat;
@@ -1213,6 +1223,8 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
 	printk("11111111\n");
         i2c_set_clientdata(client, cw_bat);
         cw_bat->plat_data = client->dev.platform_data;
+	  if(CHECK_TABLET("d720","4"))
+	  	cw_bat->plat_data->cw_bat_config_info = cw201x_config_info_d720_v4;
         //ret = cw_bat_gpio_init(cw_bat);
         if (0) {
                 dev_err(&cw_bat->client->dev, "cw_bat_gpio_init error\n");
@@ -1301,7 +1313,7 @@ static int cw_bat_probe(struct i2c_client *client, const struct i2c_device_id *i
 			pr_err("%s : CHG_INT request port erron", __func__);
 		} else {
 			s3c_gpio_cfgpin(gpio, S3C_GPIO_SFN(0xF));
-		//	s3c_gpio_setpull(gpio, S3C_GPIO_PULL_UP);
+			s3c_gpio_setpull(gpio, S3C_GPIO_PULL_NONE);
 			//gpio_free(gpio);
 		}
 		

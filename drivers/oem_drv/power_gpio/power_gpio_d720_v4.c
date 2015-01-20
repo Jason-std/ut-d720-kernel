@@ -49,7 +49,7 @@ static const struct power_gpio_node s_gpio_node_d720_v4[] =
 	{POWER_MOTOR_EN,		EXYNOS4212_GPM1(6), 1, 1, NULL},
 	{POWER_TS_RST,			EXYNOS4212_GPM3(4), 1, 1, NULL},
 
-	{POWER_STATE_AC,		EXYNOS4_GPX0(2), 1, 0, NULL},  //EINT2
+//	{POWER_STATE_AC,		EXYNOS4_GPX0(2), 1, 0, NULL},  //EINT2
 
 	{POWER_FCAM_28V,	                             0, 1, 1, power_cam_dldo2_2v8}, 
 	{POWER_FCAM_18V,	     GPIO_EXAXP22(1), 1, 1, NULL}, 

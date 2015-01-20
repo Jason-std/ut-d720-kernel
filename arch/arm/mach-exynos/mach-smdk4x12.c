@@ -2720,7 +2720,7 @@ struct cw_bat_platform_data cw201x_platform_data = {
 	.chg_mode_sel_pin = NULL,
 	.chg_ok_pin = NULL,
 	.bat_low_pin = NULL,
-	.cw_bat_config_info = &cw201x_config_info,
+	.cw_bat_config_info = cw201x_config_info,
 };
 
 
