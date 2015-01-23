@@ -132,12 +132,12 @@ int read_power_item_value(int index)
 				s3c_gpio_setpull(p_gpio_node[i].pin, S3C_GPIO_PULL_NONE);
 				gpio_direction_input(p_gpio_node[i].pin);
 			}
-		
+
 			P_GPIO_DEBUG("%s:i=%d,index=%d\n",__func__,i,index);
 			if(p_gpio_node[i].read_func){
 				return p_gpio_node[i].read_func(p_gpio_node[i]);
 			}
-		
+
 			if(p_gpio_node[i].polarity == 0)
 				return !gpio_get_value(p_gpio_node[i].pin);
 			else
@@ -163,7 +163,7 @@ int write_power_item_value(int index, int value)
 				p_gpio_node[i].write_func(p_gpio_node[i],value);
 				break;
 			}
-		
+
 			if(p_gpio_node[value].direction == 0)	//input only
 				continue;
 
