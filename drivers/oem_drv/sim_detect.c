@@ -248,7 +248,7 @@ static int gsm_probe(struct platform_device *dev)
 	}
 	// GSM wake up EINT handle
 	s3c_gpio_cfgpin(GSM_WAKE_HOST, S3C_GPIO_SFN(0xF));
-	s3c_gpio_setpull(GSM_WAKE_HOST, S3C_GPIO_PULL_UP);
+	s3c_gpio_setpull(GSM_WAKE_HOST, S3C_GPIO_PULL_NONE);
 	ret=request_irq(GSM_WAKE_HOST_IRQ, hand_gsm_wakup_irq, IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING, "3G_WAKE", NULL);
 	if(ret<0) {
 		printk("request IRQ_3G_WUP irq error ret:%d\n",ret);

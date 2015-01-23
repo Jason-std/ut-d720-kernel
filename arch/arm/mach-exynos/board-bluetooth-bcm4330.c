@@ -180,6 +180,8 @@ static int bcm4330_bt_rfkill_set_power(void *data, bool blocked)
 //		gpio_set_value(GPIO_BT_nRST, 0);
 		gpio_set_value(GPIO_BT_EN, 0);
 		s3c_gpio_setpull(GPIO_BT_HOST_WAKE, S3C_GPIO_PULL_DOWN);
+
+		wake_unlock(&bt_lpm.host_wake_lock);
 	}
 
 	msleep(50);
@@ -264,6 +266,9 @@ static irqreturn_t host_wake_isr(int irq, void *dev)
 		bt_lpm.host_wake = host_wake;
 		return IRQ_HANDLED;
 	}
+
+	if(gpio_get_value(GPIO_BT_EN))
+		return IRQ_HANDLED;
 
 	spin_lock_irqsave(&bt_lpm.uport->lock, flags);
 	update_host_wake_locked(host_wake);
