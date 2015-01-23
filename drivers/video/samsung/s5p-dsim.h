@@ -18,7 +18,7 @@
 #include <linux/device.h>
 
 //#ifdef CONFIG_CYIT_DVT
-#define FROM_K860
+//#define FROM_K860
 //#endif
 
 typedef enum {

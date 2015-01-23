@@ -83,6 +83,35 @@ void s3cfb_cfg_gpio(struct platform_device *pdev)
 #endif
 #endif
 
+
+#ifdef CONFIG_FB_S5P_MIPI_DSIM
+extern char s_selected_lcd_name[32];
+int s3cfb_mipi_clk_enable(int enable)
+{
+	struct clk *dsim_clk = NULL;
+
+	dsim_clk = clk_get(NULL, "dsim0");
+	if (IS_ERR(dsim_clk)) {
+		printk(KERN_ERR "failed to get ip clk for dsim0\n");
+		goto err_clk0;
+	}
+
+	if (enable)
+		clk_enable(dsim_clk);
+	else
+		clk_disable(dsim_clk);
+
+	clk_put(dsim_clk);
+
+	return 0;
+
+err_clk0:
+	clk_put(dsim_clk);
+
+	return -EINVAL;
+}
+#endif
+
 int s3cfb_clk_on(struct platform_device *pdev, struct clk **s3cfb_clk)
 {
 	struct clk *sclk = NULL;
@@ -146,6 +175,11 @@ int s3cfb_clk_on(struct platform_device *pdev, struct clk **s3cfb_clk)
 	}
 
 	*s3cfb_clk = sclk;
+	
+#ifdef CONFIG_FB_S5P_MIPI_DSIM
+	if(!strcmp("s5hd", s_selected_lcd_name))
+		s3cfb_mipi_clk_enable(1);
+#endif
 
 	return 0;
 

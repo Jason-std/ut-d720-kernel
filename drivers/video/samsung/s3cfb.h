@@ -331,10 +331,10 @@ extern void dp501_train_init(void);
 #define PVT_SUPPORT_LCD_BOE
 
 #define CYIT_DVT_BOARD  0//machine_is_cyit_dvt()
-#define CYIT_PVT_BOARD   1//machine_is_cyit_pvt()
+#define CYIT_PVT_BOARD   0//machine_is_cyit_pvt()
 #define CYIT_EVT_BOARD   0//machine_is_cyit_evt()
-#define LCD_BOE  1//machine_is_cyit_dvt()
-#define LCD_LG  2 // machine_is_cyit_pvt()
+#define LCD_BOE  0//machine_is_cyit_dvt()
+#define LCD_LG  0 // machine_is_cyit_pvt()
 #define LCD_NOVA_CMI 3
 #define LCD_NOVA_YASSY 4
 #define BOE_ID 0x94

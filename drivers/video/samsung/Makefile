@@ -4,6 +4,8 @@
 ifeq ($(CONFIG_FB_S5P),y)
 obj-$(CONFIG_FB_S5P_S6E8AA0)	+= s3cfb_s6e8aa0.o oled_bl.o
 obj-$(CONFIG_FB_S5P_DUMMY_MIPI_LCD)	+= s3cfb_dummymipilcd.o
+#obj-$(CONFIG_FB_S5P_MIPI_S500HD)	+= s3cfb_mipi_s500hd.o
+obj-y	+= s3cfb_mipi_s500hd.o
 obj-$(CONFIG_FB_S5P_BTL507212_MIPI_LCD)	+=  stuttgart-lcd.o
 obj-$(CONFIG_FB_S5P_MIPI_DSIM)	+= s5p_dsim_lowlevel.o
 obj-$(CONFIG_FB_S5P_MIPI_DSIM)	+= s5p-dsim.o
