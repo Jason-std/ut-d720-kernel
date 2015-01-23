@@ -12,6 +12,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+ 
 
 #include <linux/i2c.h>
 #include <linux/delay.h>
@@ -29,12 +30,9 @@
 #include <mach/regs-clock.h>
 #include "ov5645.h"
 
-#ifdef CONFIG_VIDEO_SAMSUNG_V4L2
 #include <linux/videodev2_samsung.h>
-#endif
 #include "urbetter/power_gpio.h"
 
-static int output_format_index = 0;
 #define OV5645_DRIVER_NAME	"OV5645"
 
 /* Default resolution & pixelformat. plz ref ov5645_platform.h */
@@ -224,28 +222,6 @@ static int reg_read_16(struct i2c_client *client, u16 reg, u8 *val)
 	return 0;
 }
 
-static int reg_read_8(struct i2c_client *client, u16 reg, u8 *val)
-{
-	int ret;
-	/* We have 16-bit i2c addresses - care for endianess */
-	unsigned char data[1] = { reg & 0xff };
-
-	ret = i2c_master_send(client, data, 1);
-	if (ret < 1) {
-		dev_err(&client->dev, "%s: i2c read error, reg: %x\n",
-			__func__, reg);
-		return ret < 0 ? ret : -EIO;
-	}
-
-	ret = i2c_master_recv(client, val, 1);
-	if (ret < 1) {
-		dev_err(&client->dev, "%s: i2c read error, reg: %x\n",
-				__func__, reg);
-		return ret < 0 ? ret : -EIO;
-	}
-	return 0;
-}
-
 static int reg_write_16(struct i2c_client *client, u16 reg, u8 val)
 {
 	int ret;
@@ -260,49 +236,9 @@ static int reg_write_16(struct i2c_client *client, u16 reg, u8 val)
 
 	return 0;
 }
-
-static int reg_write_8(struct i2c_client *client, u16 reg, u16 val16)
-{
-	int ret;
-	unsigned char data[2] = { reg & 0xff, val16 & 0xff };
-
-	ret = i2c_master_send(client, data, 2);
-	if (ret < 2) {
-		dev_err(&client->dev, "%s: i2c write error, reg: %x\n",
-			__func__, reg);
-		return ret < 0 ? ret : -EIO;
-	}
-	return 0;
-}
-
-static int i2c_write_array_8(struct i2c_client *client,
-				struct hm2056_reg  *vals)
-{
-	while(vals->u16RegAddr != HM5056_TABLE_END) {
-
-		int ret = reg_write_8(client, vals->u16RegAddr, vals->u8Val);
-
-		if (ret < 0)
-			return ret;
-
-		#if 0 // for test write sensor reg
-			//mdelay(50);
-			uint8_t value = -1;;
-	
-			ret = reg_read_8(client, vals->u16RegAddr, &value);
-			if(vals->u8Val != (value & 0xff))
-				printk("[addr]%x, [R] reg[0x:%x] [W]:value:[0x%x]  [R]value[:0x%x]\n",client->addr, vals->u16RegAddr,vals->u8Val,value);
-		#endif
-		vals++;
-	}
-	return 0;
-}
-
 static int i2c_write_array_16(struct i2c_client *client,
 				struct hm2056_reg  *vals)
 {
-	uint i = 0;
-
 	while(vals->u16RegAddr != HM5056_TABLE_END) {
 
 		int ret = reg_write_16(client, vals->u16RegAddr, vals->u8Val);
@@ -329,79 +265,9 @@ static int i2c_write_array_16(struct i2c_client *client,
 }
 
 
-static int i2c_write_array_16_sleep(struct i2c_client *client,
-				struct hm2056_reg  *vals)
-{
-	uint i = 0;
-
-	while(vals->u16RegAddr != HM5056_TABLE_END) {
-
-		int ret = reg_write_16(client, vals->u16RegAddr, vals->u8Val);
-
-		if (ret < 0)
-			return ret;
-
-		#if 1 // for test write sensor reg
-			//mdelay(50);
-		//	msleep(10);
-			uint8_t value = -1;;
-
-			ret = reg_read_16(client, vals->u16RegAddr, &value);
-			if(vals->u8Val != (value & 0xff))
-				printk("[addr]%x, [R] reg[0x:%x] [W]:value:[0x%x]  [R]value[:0x%x]\n",client->addr, vals->u16RegAddr,vals->u8Val,value);
-		#endif
-		if(vals->u32Delay_ms > 0)
-			msleep(vals->u32Delay_ms);
-		vals++;
-	}
-	dev_dbg(&client->dev, "Register list loaded\n");
-
-	return 0;
-}
-
-static int i2c_check_array_af(struct i2c_client *client,
-				unsigned char * pv)
-{
-	uint i = 0,ret;
-	u8 val;
-	u16 start=0x8000,end=0x9572,reg;
-	pv+=2;
-	for(reg=start,i=0;reg<end+1;reg++,i++){
-		reg_read_16(client, reg, &val);
-		if(val!=pv[i]){
-			printk("%s:reg[0x%04x],R[0x%02x],W[0x%02x]\n",__func__,reg,val,pv[i]);
-		}
-	}
-}
-
-static int i2c_check_array_16(struct i2c_client *client,
-				struct hm2056_reg  *vals)
-{
-	uint i = 0,ret;
-
-	while(vals->u16RegAddr != HM5056_TABLE_END) {
-
-		//int ret = reg_write_16(client, vals->u16RegAddr, vals->u8Val);
-
-		//if (ret < 0)
-		//	return ret;
-
-		#if 1 // for test write sensor reg
-			//mdelay(50);
-			uint8_t value = -1;;
-
-			ret = reg_read_16(client, vals->u16RegAddr, &value);
-			if(vals->u8Val != (value & 0xff))
-				printk("[addr]%x, [R] reg[0x:%x] [W]:value:[0x%x]  [R]value[:0x%x]\n",client->addr, vals->u16RegAddr,vals->u8Val,value);
-		#endif
-		vals++;
-	}
-	dev_dbg(&client->dev, "Register list loaded\n");
-
-	return 0;
-}
 
 #if 0
+
 int DDI_I2C_Read(struct v4l2_subdev *sd, unsigned short reg,unsigned char reg_bytes, 
 					unsigned char *val, unsigned char val_bytes)
 {
@@ -555,6 +421,205 @@ static int ov5645_write_regs(struct v4l2_subdev *sd, unsigned char regs[], int s
 
 	return 0;
 }
+
+static int ov5645_s_config(struct v4l2_subdev *sd, int irq, void *platform_data)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(sd);
+	struct ov5645_state *state = to_state(sd);
+	struct ov5645_platform_data *pdata;
+
+	dbg_fun;
+
+	pdata = client->dev.platform_data;
+
+	if (!pdata)
+	{
+		dev_err(&client->dev, "%s: no platform data\n", __func__);
+		return -ENODEV;
+	}
+
+	if (!(pdata->default_width && pdata->default_height))
+	{
+		/* TODO: assign driver default resolution */
+	}
+	else
+	{
+		state->pix.width = pdata->default_width;
+		state->pix.height = pdata->default_height;
+	}
+
+	if (!pdata->pixelformat)
+		state->pix.pixelformat = DEFAULT_FMT;
+	else
+		state->pix.pixelformat = pdata->pixelformat;
+
+	if (!pdata->freq)
+		state->freq = 24000000; /* 24MHz default */
+	else
+		state->freq = pdata->freq;
+
+	if (!pdata->is_mipi)
+	{
+		state->is_mipi = 0;
+		dev_info(&client->dev, "parallel mode\n");
+	}
+	else
+		state->is_mipi = pdata->is_mipi;
+
+	return 0;
+}
+static int ov5645_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *fmt)
+{
+	int err = 0;
+	dbg_fun;
+
+	return err;
+}
+static int ov5645_enum_fmt(struct v4l2_subdev *sd, struct v4l2_fmtdesc *fmtdesc)
+{
+	int err = 0;
+	
+	dbg_fun;
+
+	return err;
+}
+
+static int i2c_check_array_af(struct i2c_client *client,
+				unsigned char * pv)
+{
+	uint i = 0,ret;
+	u8 val;
+	u16 start=0x8000,end=0x9572,reg;
+	pv+=2;
+	for(reg=start,i=0;reg<end+1;reg++,i++){
+		reg_read_16(client, reg, &val);
+		if(val!=pv[i]){
+			printk("%s:reg[0x%04x],R[0x%02x],W[0x%02x]\n",__func__,reg,val,pv[i]);
+		}
+	}
+}
+
+static int i2c_check_array_16(struct i2c_client *client,
+				struct hm2056_reg  *vals)
+{
+	uint i = 0,ret;
+
+	while(vals->u16RegAddr != HM5056_TABLE_END) {
+
+		//int ret = reg_write_16(client, vals->u16RegAddr, vals->u8Val);
+
+		//if (ret < 0)
+		//	return ret;
+
+		#if 1 // for test write sensor reg
+			//mdelay(50);
+			uint8_t value = -1;;
+
+			ret = reg_read_16(client, vals->u16RegAddr, &value);
+			if(vals->u8Val != (value & 0xff))
+				printk("[addr]%x, [R] reg[0x:%x] [W]:value:[0x%x]  [R]value[:0x%x]\n",client->addr, vals->u16RegAddr,vals->u8Val,value);
+		#endif
+		vals++;
+	}
+	dev_dbg(&client->dev, "Register list loaded\n");
+
+	return 0;
+}
+
+
+static int i2c_write_array_8(struct i2c_client *client,
+				struct hm2056_reg  *vals)
+{
+	while(vals->u16RegAddr != HM5056_TABLE_END) {
+
+		int ret = reg_write_8(client, vals->u16RegAddr, vals->u8Val);
+
+		if (ret < 0)
+			return ret;
+
+		#if 0 // for test write sensor reg
+			//mdelay(50);
+			uint8_t value = -1;;
+	
+			ret = reg_read_8(client, vals->u16RegAddr, &value);
+			if(vals->u8Val != (value & 0xff))
+				printk("[addr]%x, [R] reg[0x:%x] [W]:value:[0x%x]  [R]value[:0x%x]\n",client->addr, vals->u16RegAddr,vals->u8Val,value);
+		#endif
+		vals++;
+	}
+	return 0;
+}
+
+
+static int reg_read_8(struct i2c_client *client, u16 reg, u8 *val)
+{
+	int ret;
+	/* We have 16-bit i2c addresses - care for endianess */
+	unsigned char data[1] = { reg & 0xff };
+
+	ret = i2c_master_send(client, data, 1);
+	if (ret < 1) {
+		dev_err(&client->dev, "%s: i2c read error, reg: %x\n",
+			__func__, reg);
+		return ret < 0 ? ret : -EIO;
+	}
+
+	ret = i2c_master_recv(client, val, 1);
+	if (ret < 1) {
+		dev_err(&client->dev, "%s: i2c read error, reg: %x\n",
+				__func__, reg);
+		return ret < 0 ? ret : -EIO;
+	}
+	return 0;
+}
+
+
+static int reg_write_8(struct i2c_client *client, u16 reg, u16 val16)
+{
+	int ret;
+	unsigned char data[2] = { reg & 0xff, val16 & 0xff };
+
+	ret = i2c_master_send(client, data, 2);
+	if (ret < 2) {
+		dev_err(&client->dev, "%s: i2c write error, reg: %x\n",
+			__func__, reg);
+		return ret < 0 ? ret : -EIO;
+	}
+	return 0;
+}
+
+static int i2c_write_array_16_sleep(struct i2c_client *client,
+				struct hm2056_reg  *vals)
+{
+	uint i = 0;
+
+	while(vals->u16RegAddr != HM5056_TABLE_END) {
+
+		int ret = reg_write_16(client, vals->u16RegAddr, vals->u8Val);
+
+		if (ret < 0)
+			return ret;
+
+		#if 1 // for test write sensor reg
+			//mdelay(50);
+		//	msleep(10);
+			uint8_t value = -1;;
+
+			ret = reg_read_16(client, vals->u16RegAddr, &value);
+			if(vals->u8Val != (value & 0xff))
+				printk("[addr]%x, [R] reg[0x:%x] [W]:value:[0x%x]  [R]value[:0x%x]\n",client->addr, vals->u16RegAddr,vals->u8Val,value);
+		#endif
+		if(vals->u32Delay_ms > 0)
+			msleep(vals->u32Delay_ms);
+		vals++;
+	}
+	dev_dbg(&client->dev, "Register list loaded\n");
+
+	return 0;
+}
+
+
+
 #endif
 static const char *ov5645_querymenu_wb_preset[] =
 { "WB Tungsten", "WB Fluorescent", "WB sunny", "WB cloudy", NULL };
@@ -713,9 +778,6 @@ static int ov5645_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *fmt)
 {
 	
 	int ret = -EINVAL;
-	int i, err=0;
-	u8 r;
-	unsigned short *item;
 	struct ov5645_state *state =to_state(sd);
 	
 	printk("*** lzy: %s,width = %d,height = %d\n",__func__,fmt->width,fmt->height);
@@ -724,9 +786,6 @@ static int ov5645_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *fmt)
 
 
 	state->framesize_index=ov5645_CAPTURE_5MP;
-	//i2c_write_array_16(v4l2_get_subdevdata(sd), ov5645_reset_regs);
-//	i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_stop_stream);
-
 	if(2592==fmt->width&&(1944==fmt->height))
 	{
 		printk("ov5645 5M set\n");
@@ -763,16 +822,6 @@ static int ov5645_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *fmt)
 		state->framesize_index=ov5645_CAPTURE_VGA;		
 		i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_res_640x480);
 	} 
-
-//	reg_read_16(v4l2_get_subdevdata(sd), 0x3000, &r);
-//	printk("%s;reg[0x3000] = 0x%02x\n",__func__,r);
-//	i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_auto_focus_init);
-//	i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_focus_constant);
-//	reg_read_16(v4l2_get_subdevdata(sd), 0x3000, &r);
-//	printk("%s;11reg[0x3000] = 0x%02x\n",__func__,r);
-
-//	i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_auto_focus_init_0723);
-
 	i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_stop_stream);
 
 	return 0;
@@ -793,17 +842,17 @@ static int ov5645_enum_framesizes(struct v4l2_subdev *sd, struct v4l2_frmsizeenu
 
 	index = state->framesize_index;
 	
-	printk("%s : state->framesize_index=%d\n",__func__,state->framesize_index);
+	//intk("%s : state->framesize_index=%d\n",__func__,state->framesize_index);
 	
 	for (i = 0; i < num_entries; i++)
 	{
 		elem = &ov5645_capture_framesize_list[i];
-		printk("%s:i=%d,index=%d,w=%d,h=%d\n",__func__,i,elem->index,elem->width,elem->height);
+	//	printk("%s:i=%d,index=%d,w=%d,h=%d\n",__func__,i,elem->index,elem->width,elem->height);
 		if (elem->index == index)
 		{
 			fsize->discrete.width = ov5645_capture_framesize_list[i].width;
 			fsize->discrete.height = ov5645_capture_framesize_list[i].height;
-			printk("%s : fsize->discrete.width= %d, fsize->discrete.height=%d \n ",__func__,fsize->discrete.width,fsize->discrete.height);
+		//rintk("%s : fsize->discrete.width= %d, fsize->discrete.height=%d \n ",__func__,fsize->discrete.width,fsize->discrete.height);
 			return 0;
 		}
 	}
@@ -813,48 +862,19 @@ static int ov5645_enum_framesizes(struct v4l2_subdev *sd, struct v4l2_frmsizeenu
 static int ov5645_enum_frameintervals(struct v4l2_subdev *sd,
 		struct v4l2_frmivalenum *fival)
 {
-	int err = 0;
-	dbg_fun;
-	return err;
+	return 0;
 }
 
-static int ov5645_enum_fmt(struct v4l2_subdev *sd, struct v4l2_fmtdesc *fmtdesc)
-{
-	int err = 0;
-	
-	dbg_fun;
 
-	return err;
-}
-
-static int ov5645_try_fmt(struct v4l2_subdev *sd, struct v4l2_format *fmt)
-{
-	int err = 0;
-	dbg_fun;
-
-	return err;
-}
 
 static int ov5645_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *param)
 {
-	struct i2c_client *client = v4l2_get_subdevdata(sd);
-	int err = 0;
-
-	dbg_fun;
-
-	return err;
+	return 0;
 }
 
 static int ov5645_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *param)
 {
-	struct i2c_client *client = v4l2_get_subdevdata(sd);
-	int err = 0;
-	dbg_fun;
-	dev_dbg(&client->dev, "%s: numerator %d, denominator: %d\n", __func__,
-			param->parm.capture.timeperframe.numerator,
-			param->parm.capture.timeperframe.denominator);
-
-	return err;
+	return 0;
 }
 
 static void ov5645_enable_torch(struct v4l2_subdev *sd)
@@ -953,6 +973,45 @@ static void ov5645_set_awb_mode(int AWB_enable)
 	OV5645MIPISENSORDB("[OV5645MIPI]exit OV5645MIPI_set_AWB_mode function:\n ");
 }*/
 
+static int ov5645_set_scene(struct v4l2_subdev *sd, struct v4l2_control * ctrl)
+{
+	struct i2c_client *client = v4l2_get_subdevdata(sd);
+	struct ov5645_state *state = to_state(sd);
+	struct ov5645_userset * userset = &state->userset;
+	int value=ctrl->value;
+	u8 awb;	
+	int ret = -EINVAL;
+	
+	return 0;// fix me! this function can not work!
+
+	switch(value){
+		case SCENE_MODE_NONE:
+			dbg_str(">>>V4L2_SCENE_MODE_NONE");
+			ret=i2c_write_array_16(client, ov5645_scene_none);
+			break;
+		case SCENE_MODE_NIGHTSHOT:
+			dbg_str(">>>V4L2_SCENE_MODE_NIGHTSHOT");
+			ret=i2c_write_array_16(client, ov5645_scene_nightshot);
+			break;			
+		case SCENE_MODE_PARTY_INDOOR:
+			
+			dbg_str(">>>V4L2_SCENE_MODE_PARTY_INDOOR");
+			ret=i2c_write_array_16(client, ov5645_scene_party_indoor);
+			break;
+		case SCENE_MODE_SUNSET:
+			
+			dbg_str(">>>V4L2_SCENE_MODE_SUNSET");
+			ret=i2c_write_array_16(client, ov5645_scene_sunset);
+			break;
+		default:
+			ret = -EINVAL	;		
+	}
+	
+	if(ret==0)
+		//userset->auto_wb=value;
+	return ret;
+}
+
 static int ov5645_set_wb(struct v4l2_subdev *sd, struct v4l2_control * ctrl)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
@@ -966,13 +1025,13 @@ static int ov5645_set_wb(struct v4l2_subdev *sd, struct v4l2_control * ctrl)
 	switch(value){
 		case WHITE_BALANCE_AUTO:
 			reg_write_16(client, 0x3406, awb&0xfe);
-			//ret=i2c_write_array_16(client, OV5645_reg_wb_auto);
 			break;
-		case WHITE_BALANCE_SUNNY:
+		case WHITE_BALANCE_SUNNY:			
 			reg_write_16(client, 0x3406, awb|0x01);
 			ret=i2c_write_array_16(client, OV5645_reg_wb_sunny);
 			break;
 		case WHITE_BALANCE_CLOUDY:
+			
 			reg_write_16(client, 0x3406, awb|0x01);
 			ret=i2c_write_array_16(client, OV5645_reg_wb_cloudy);
 			break;
@@ -1031,13 +1090,13 @@ static int ov5645_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct ov5645_state *state = to_state(sd);
 	struct ov5645_userset userset = state->userset;
-	int err = 0;
-	
-//	dbg_int(ctrl->id);
-
+	int err = 0;	
+	//dbg_fun;
 	switch (ctrl->id)
 	{
 	case V4L2_CID_CAMERA_WHITE_BALANCE:
+		
+		printk("get V4L2_CID_CAMERA_WHITE_BALANCE!!!\n");
 		ctrl->value = userset.auto_wb;
 		break;
 	case V4L2_CID_WHITE_BALANCE_PRESET:
@@ -1054,6 +1113,9 @@ static int ov5645_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		break;
 	case V4L2_CID_CAMERA_SHARPNESS:
 		ctrl->value = userset.saturation;
+		break;
+	case V4L2_CID_SCENEMODE:
+		printk("get scene mode!!!\n");
 		break;
 	case V4L2_CID_CAM_JPEG_MAIN_SIZE:
 	case V4L2_CID_CAM_JPEG_MAIN_OFFSET:
@@ -1083,6 +1145,8 @@ static int ov5645_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		ctrl->value = 0;
 		break;
 	case V4L2_CID_EXPOSURE:
+		
+		printk("get V4L2_CID_EXPOSURE!!!\n");
 		ctrl->value = userset.exposure_bias;
 		break;
 	default:
@@ -1129,7 +1193,7 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	int err = 0;
 	int value = ctrl->value;
 	
-	dbg_int(ctrl->id);
+	//dbg_int(ctrl->id);
 
 	switch (ctrl->id)
 	{
@@ -1162,6 +1226,9 @@ static int ov5645_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 		break;
 	case V4L2_CID_CAM_JPEG_QUALITY:
 	case V4L2_CID_CAMERA_SCENE_MODE:
+		printk("V4L2_CID_CAMERA_SCENE_MODE\n");
+		ov5645_set_scene(sd,ctrl);
+		break;
 	case V4L2_CID_CAMERA_GPS_LATITUDE:
 	case V4L2_CID_CAMERA_GPS_LONGITUDE:
 	case V4L2_CID_CAMERA_GPS_TIMESTAMP:
@@ -1232,8 +1299,7 @@ static int ov5645_init(struct v4l2_subdev *sd, u32 val)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct ov5645_state *state = to_state(sd);
-	u8 r;
-	int err = -EINVAL, i;	
+	int err = -EINVAL;	
 	uint8_t value = -1,v1,v2;
 	printk("enter %s\n",__func__);
 	 state->framesize_index=0;
@@ -1277,58 +1343,9 @@ static int ov5645_init(struct v4l2_subdev *sd, u32 val)
 	return 0;
 }
 
-static int ov5645_s_config(struct v4l2_subdev *sd, int irq, void *platform_data)
-{
-	struct i2c_client *client = v4l2_get_subdevdata(sd);
-	struct ov5645_state *state = to_state(sd);
-	struct ov5645_platform_data *pdata;
-
-	dbg_fun;
-
-	pdata = client->dev.platform_data;
-
-	if (!pdata)
-	{
-		dev_err(&client->dev, "%s: no platform data\n", __func__);
-		return -ENODEV;
-	}
-
-	if (!(pdata->default_width && pdata->default_height))
-	{
-		/* TODO: assign driver default resolution */
-	}
-	else
-	{
-		state->pix.width = pdata->default_width;
-		state->pix.height = pdata->default_height;
-	}
-
-	if (!pdata->pixelformat)
-		state->pix.pixelformat = DEFAULT_FMT;
-	else
-		state->pix.pixelformat = pdata->pixelformat;
-
-	if (!pdata->freq)
-		state->freq = 24000000; /* 24MHz default */
-	else
-		state->freq = pdata->freq;
-
-	if (!pdata->is_mipi)
-	{
-		state->is_mipi = 0;
-		dev_info(&client->dev, "parallel mode\n");
-	}
-	else
-		state->is_mipi = pdata->is_mipi;
-
-	return 0;
-}
-
 static int ov5645_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct ov5645_state *state =to_state(sd);
-	unsigned int r;
-
 	if(enable){		
 		i2c_write_array_16(v4l2_get_subdevdata(sd), OV5645_reg_start_stream);
 		usleep_range(5000, 5500); 
@@ -1435,7 +1452,6 @@ static int ov5645_probe(struct i2c_client *client,
 {
 	struct ov5645_state *state;
 	struct v4l2_subdev *sd;
-	int ret =0;
 	dbg_fun;
 	//ov5645_init();
 	state = kzalloc(sizeof(struct ov5645_state), GFP_KERNEL);
