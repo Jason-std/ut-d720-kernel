@@ -457,6 +457,7 @@ static int __init bcm4330_bluetooth_init(void)
 
 	if((strstr(g_selected_utmodel,"s502"))
 	||(strstr(g_selected_utmodel,"d10"))
+	||(strstr(g_selected_utmodel,"d521"))
 	||(strstr(g_selected_utmodel,"d721"))
 	||(strstr(g_selected_utmodel,"d722"))
 	||(strstr(g_selected_utmodel,"d720"))
