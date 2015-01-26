@@ -438,11 +438,18 @@ GTP_DEBUG("ID:%d, X:%d, Y:%d, W:%d", id, x, y, w);
 #if GTP_ICS_SLOT_REPORT
     input_mt_slot(ts->input_dev, id);
     input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, id);
-    input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
-    input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, y);
+	
+	if(strncmp(g_selected_utmodel, "d1011", strlen("d1011")) == 0) {
+    	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (1280-x));
+    	input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (800-y));
+	}
+	else{
+    	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
+    	input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, y);
+	}
     input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, w);
     input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, w);	
-	//printk("*****gtp_touch_down _ Position: (%d, %d)\n", x, y);//Position print
+	//printk("GTP(%d,%d)\n",1280-x,800-y);
 #else
     input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
     input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, y);
@@ -1191,15 +1198,18 @@ static s32 gtp_init_panel(struct goodix_ts_data *ts)
 			}
 	#endif
 
+
+
+	if(strncmp(g_selected_utmodel, "d1011", strlen("d1011")) == 0) {
+		//printk(">>>> GTP config d1011!\n");
+		send_cfg_buf[0] = CTP_CFG_GROUP1_D1011;
+		cfg_info_len[0] = CFG_GROUP_LEN(CTP_CFG_GROUP1_D1011);
+	}
+	else if(strncmp(g_selected_utmodel, "d720", strlen("d720")) == 0)
+	{
 		send_cfg_buf[0] = cfg_info_group1;
-	/*
-		send_cfg_buf[1] = cfg_info_group2;
-		//send_cfg_buf[2] = cfg_info_group3;
-		send_cfg_buf[3] = cfg_info_group4;
-		send_cfg_buf[4] = cfg_info_group5;
-		send_cfg_buf[5] = cfg_info_group6;
-*/
 		cfg_info_len[0] = CFG_GROUP_LEN(cfg_info_group1);
+	}
 	/*
 		cfg_info_len[1] = CFG_GROUP_LEN(cfg_info_group2);
 		//cfg_info_len[2] = CFG_GROUP_LEN(cfg_info_group3);
