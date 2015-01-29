@@ -15,7 +15,7 @@
 
 static const struct power_gpio_node s_gpio_node_d521[] =
 {
-	{POWER_5V_EN,			EXYNOS4_GPK1(2), 1, 1, NULL},
+	{POWER_5V_EN,			EXYNOS4_GPK1(1), 1, 1, NULL},
 	{POWER_INT_EN,			EXYNOS4212_GPM3(7), 0, 1, NULL}, // low is  default volt, high is another volt (PMU cc)
 	{POWER_WIFI_EN,			EXYNOS4212_GPM3(1), 1, 1, NULL},
 	{POWER_WIFI_LDO,		EXYNOS4_GPL1(1), 1, 1, NULL},
