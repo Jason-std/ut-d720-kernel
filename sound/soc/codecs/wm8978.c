@@ -43,21 +43,21 @@ static int b_spk_high_enable = true;
 /* wm8978 register cache. Note that register 0 is not included in the cache. */
 static u16 wm8978_reg[WM8978_CACHEREGNUM] = {
 #if 0
-	0x0000,0x005d,0x01bc,0x00ef, /* 0x00...0x03 */ 
-	0x0010,0x0001,0x0000,0x0000, /* 0x04...0x07 */ 
-	0x0000,0x0000,0x000c,0x01ff, /* 0x08...0x0b */ 
-	0x01ff,0x0000,0x0108,0x01ff, /* 0x0c...0x0f */ 
-	0x01ff,0x0000,0x012c,0x002c, /* 0x10...0x13 */ 
-	0x002c,0x002c,0x010d,0x0000, /* 0x14...0x17 */ 
-	0x0032,0x0000,0x0000,0x0000, /* 0x18...0x1b */ 
-	0x0000,0x0000,0x0000,0x0000, /* 0x1c...0x1f */ 
-	0x0138,0x007b,0x0032,0x0000, /* 0x20...0x23 */ 
-	0x0018,0x000c,0x0093,0x00e9, /* 0x24...0x27 */ 
-	0x0000,0x0000,0x0000,0x0000, /* 0x28...0x2b */ 
-	0x0133,0x01a8,0x01a8,0x0170, /* 0x2c...0x2f */ 
-	0x0170,0x000f,0x01fd,0x01fd, /* 0x30...0x33 */ 
-	0x0132,0x0132,0x013f,0x013f, /* 0x34...0x37 */ 
-	0x0005,0x0001,				 /* 0x38...0x3b */ 
+	0x0000,0x005d,0x01bc,0x00ef, /* 0x00...0x03 */
+	0x0010,0x0001,0x0000,0x0000, /* 0x04...0x07 */
+	0x0000,0x0000,0x000c,0x01ff, /* 0x08...0x0b */
+	0x01ff,0x0000,0x0108,0x01ff, /* 0x0c...0x0f */
+	0x01ff,0x0000,0x012c,0x002c, /* 0x10...0x13 */
+	0x002c,0x002c,0x010d,0x0000, /* 0x14...0x17 */
+	0x0032,0x0000,0x0000,0x0000, /* 0x18...0x1b */
+	0x0000,0x0000,0x0000,0x0000, /* 0x1c...0x1f */
+	0x0138,0x007b,0x0032,0x0000, /* 0x20...0x23 */
+	0x0018,0x000c,0x0093,0x00e9, /* 0x24...0x27 */
+	0x0000,0x0000,0x0000,0x0000, /* 0x28...0x2b */
+	0x0133,0x01a8,0x01a8,0x0170, /* 0x2c...0x2f */
+	0x0170,0x000f,0x01fd,0x01fd, /* 0x30...0x33 */
+	0x0132,0x0132,0x013f,0x013f, /* 0x34...0x37 */
+	0x0005,0x0001,				 /* 0x38...0x3b */
 #else
 	0x0000, 0x0000, 0x0000, 0x0000,	/* 0x00...0x03 */
 	0x0050, 0x0000, 0x0140, 0x0000,	/* 0x04...0x07 */
@@ -83,13 +83,13 @@ static u16 wm8978_reg_702[WM8978_CACHEREGNUM] = {
 #if 0
 	0x0000, 0x0000, 0x0000, 0x0000,	/* 0x00...0x03 */
 	0x0050, 0x0000, 0x0140, 0x0000,	/* 0x04...0x07 */
-	
+
 	0x0000, 0x0000, 0x000c, 0x01ff,	/* 0x08...0x0b */
 	0x01f6, 0x0000, 0x0108, 0x00ff,	/* 0x0c...0x0f */
-	
+
 	0x00ff, 0x0000, 0x0138, 0x0138,	/* 0x10...0x13 */
-	0x0030, 0x002c, 0x0028, 0x0000,	/* 0x14...0x17 */	
-	
+	0x0030, 0x002c, 0x0028, 0x0000,	/* 0x14...0x17 */
+
 	0x0032, 0x005c, 0x0000, 0x0000,	/* 0x18...0x1b */
 	0x0000, 0x0000, 0x0000, 0x0000,	/* 0x1c...0x1f */
 	0x0138, 0x000b, 0x0032, 0x001f,	/* 0x20...0x23 */
@@ -108,7 +108,7 @@ static u16 wm8978_reg_702[WM8978_CACHEREGNUM] = {
 0x01f6, 0x0000, 0x0108, 0x00ff, /* 0x0c...0x0f */
 
 0x00ff, 0x0000, 0x0138, 0x0138, /* 0x10...0x13 */
-0x0030, 0x002c, 0x0028, 0x0000, /* 0x14...0x17 */	
+0x0030, 0x002c, 0x0028, 0x0000, /* 0x14...0x17 */
 
 0x0032, 0x005c, 0x0000, 0x0000, /* 0x18...0x1b */
 0x0000, 0x0000, 0x0000, 0x0000, /* 0x1c...0x1f */
@@ -120,7 +120,7 @@ static u16 wm8978_reg_702[WM8978_CACHEREGNUM] = {
 0x0035, 0x0035, 0x0039, 0x0039, /* 0x34...0x37 */
 0x0001, 0x0001, 		/* 0x38...0x3b */
 #endif
-	
+
 };
 
 
@@ -182,74 +182,130 @@ extern char g_selected_utmodel[32];
 
 static void wm8978_call_off(struct snd_soc_codec *codec)
 {
-	wm8978_dbg("%s",__FUNCTION__);                
-	return;                                       
+	wm8978_dbg("%s",__FUNCTION__);
+	return;
 }
 static void wm8978_call_rcv(struct snd_soc_codec *codec)
 {
 	int i=0;
-	wm8978_dbg("%s",__FUNCTION__);      
+	wm8978_dbg("%s",__FUNCTION__);
  	 for(i=0;i<ARRAYSIZE(wm8978_call_rcv_reg);i++)
-			snd_soc_write(codec,wm8978_call_rcv_reg[i].reg,wm8978_call_rcv_reg[i].value); 
-	return;                                       
+			snd_soc_write(codec,wm8978_call_rcv_reg[i].reg,wm8978_call_rcv_reg[i].value);
+	return;
 }
 static void wm8978_call_spk(struct snd_soc_codec *codec)
 {
-	wm8978_dbg("%s",__FUNCTION__);                
-	return;                                       
+	wm8978_dbg("%s",__FUNCTION__);
+	return;
 
 }
 static void wm8978_call_hp(struct snd_soc_codec *codec)
 {
 
 	int i=0;
-	wm8978_dbg("%s",__FUNCTION__);      
+	wm8978_dbg("%s",__FUNCTION__);
  	for(i=0;i<ARRAYSIZE(wm8978_call_rcv_hp);i++)
 			snd_soc_write(codec,wm8978_call_rcv_hp[i].reg,wm8978_call_rcv_hp[i].value);
-	return;                                       
-                
-	return;                                       
+	return;
+
+	return;
 
 }
 static void wm8978_call_hp_no_mic(struct snd_soc_codec *codec)
 {
-	wm8978_dbg("%s",__FUNCTION__);                
-	return;                                       
+	wm8978_dbg("%s",__FUNCTION__);
+	return;
 
 }
 static void wm8978_call_bt(struct snd_soc_codec *codec)
 {
-	wm8978_dbg("%s",__FUNCTION__);                
-	return;                                       
+	wm8978_dbg("%s",__FUNCTION__);
+	return;
 
 }
-                                                           
 
-static select_route uj_wm8978_voice_call_path[]={                     
-//	"OFF", 				"RCV",			"SPK", 			"HP",		 "HP_NO_MIC", 			"BT"  
+
+static select_route uj_wm8978_voice_call_path[]={
+//	"OFF", 				"RCV",			"SPK", 			"HP",		 "HP_NO_MIC", 			"BT"
 	wm8978_call_off,wm8978_call_rcv,wm8978_call_spk,wm8978_call_hp,wm8978_call_hp_no_mic,wm8978_call_bt,
-};                                                                                                    
+};
 static int wm8978_get_voice_call(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
-  	
+
   	 struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
 	struct wm8978_priv *wm8978 = snd_soc_codec_get_drvdata(codec);
 	struct soc_enum *mc = (struct soc_enum *)kcontrol->private_value;
 	ucontrol->value.integer.value[0]=wm8978->voice_call_state;
 	wm8978_dbg("%s----%ld-----\n",__FUNCTION__,ucontrol->value.integer.value[0]);
-	
+
 	return 0;
-		
+
 }
 
 static int wm8978_set_voice_call(struct snd_kcontrol *kcontrol,struct snd_ctl_elem_value *ucontrol)
 {
-		struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);  
+		struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
 		int path_num=ucontrol->value.integer.value[0];
-		printk("%s\n",__FUNCTION__);
+		//printk("%s\n",__FUNCTION__);
 	 	uj_wm8978_voice_call_path[path_num](codec);
 	return 0;
+}
+
+
+int set_hp_voice(struct snd_soc_codec *codec,int v)
+{
+	int i;
+	int old=snd_soc_read(codec,WM8978_LOUT1_HP_CONTROL);
+	//printk("%s:set voice to %d\n",__func__,v);
+	if(v!=old){
+		i=old;
+		do{
+			old>v?i--:i++;
+			snd_soc_update_bits(codec, WM8978_LOUT1_HP_CONTROL, 0x3F, i);
+			snd_soc_update_bits(codec, WM8978_ROUT1_HP_CONTROL, 0x3F, i);
+			mdelay(2);
+		}while(i!=v);
+	}
+	return 0;
+}
+
+int wm8978_get_hp_voice(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	return snd_soc_get_volsw_2r(kcontrol,ucontrol);
+}
+
+int wm8978_set_hp_voice(struct snd_kcontrol *kcontrol,
+	struct snd_ctl_elem_value *ucontrol)
+{
+	struct soc_mixer_control *mc =
+		(struct soc_mixer_control *)kcontrol->private_value;
+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
+	unsigned int reg = mc->reg;
+	unsigned int reg2 = mc->rreg;
+	unsigned int shift = mc->shift;
+	int max = mc->max;
+	unsigned int mask = (1 << fls(max)) - 1;
+	unsigned int invert = mc->invert;
+	int err;
+	unsigned int val, val2, val_mask;
+
+	val_mask = mask << shift;
+	val = (ucontrol->value.integer.value[0] & mask);
+	val2 = (ucontrol->value.integer.value[1] & mask);
+
+	if (invert) {
+		val = max - val;
+		val2 = max - val2;
+	}
+
+	val = val << shift;
+	val2 = val2 << shift;
+
+	//printk("%s:set to %d,%d\n",__func__,val,val2);
+
+	set_hp_voice(codec,val);
 }
 
 static const struct snd_kcontrol_new wm8978_snd_controls[] = {
@@ -324,7 +380,7 @@ static const struct snd_kcontrol_new wm8978_snd_controls[] = {
 //urbetter
 	SOC_SINGLE("Capture_LRC_POLARITY", WM8978_AUDIO_INTERFACE, 7, 1, 0),
 	SOC_SINGLE("DAC_LRC_SWAP", WM8978_AUDIO_INTERFACE, 3, 1, 0),
-//	SOC_SINGLE_EXT("Voice_Call_Path",0,0,0,0,NULL,wm8978_set_voice_call),	
+//	SOC_SINGLE_EXT("Voice_Call_Path",0,0,0,0,NULL,wm8978_set_voice_call),
 	SOC_ENUM_EXT("Voice_Call_Path",path_control_enum[0],wm8978_get_voice_call,wm8978_set_voice_call),
 	SOC_DOUBLE_R("AUX_TO_MIX", WM8978_LEFT_MIXER_CONTROL,WM8978_RIGHT_MIXER_CONTROL, 5, 1, 0),
 	SOC_DOUBLE_R("DAC_TO_MIX", WM8978_LEFT_MIXER_CONTROL,WM8978_RIGHT_MIXER_CONTROL, 0, 1, 0),
@@ -334,7 +390,7 @@ static const struct snd_kcontrol_new wm8978_snd_controls[] = {
 
 	SOC_SINGLE("AUX_MIXER_Volume_L", WM8978_LEFT_MIXER_CONTROL,6,7,0),
 	SOC_SINGLE("AUX_MIXER_Volume_R", WM8978_RIGHT_MIXER_CONTROL,6,7,0),
-	
+
 	SOC_SINGLE("BYP_MIXER_Volume_L", WM8978_LEFT_MIXER_CONTROL,2, 7,0),
 	SOC_SINGLE("BYP_MIXER_Volume_R", WM8978_LEFT_MIXER_CONTROL,2, 7,0),
 
@@ -343,10 +399,10 @@ static const struct snd_kcontrol_new wm8978_snd_controls[] = {
 	SOC_SINGLE("SPK_BOOT", WM8978_OUTPUT_CONTROL,2, 1,0),
 	SOC_SINGLE("SPK_BOOT_702", WM8978_OUTPUT_CONTROL,0, 63,0),//add by eking
 	SOC_SINGLE("SPK_BOOT_108", WM8978_OUTPUT_CONTROL, 0, 63, 0), //add by orange@2014/5/29
-	
+
 	SOC_SINGLE("HPL_MUTE", WM8978_LOUT1_HP_CONTROL,6, 1,0),
 	SOC_SINGLE("HPR_MUTE", WM8978_ROUT1_HP_CONTROL,6, 1,0),
-	
+
 	SOC_SINGLE("SPKL_MUTE", WM8978_LOUT2_SPK_CONTROL,6, 1,0),
 	SOC_SINGLE("SPKR_MUTE", WM8978_ROUT2_SPK_CONTROL,6, 1,0),
 //voice
@@ -357,7 +413,7 @@ static const struct snd_kcontrol_new wm8978_snd_controls[] = {
 	SOC_SINGLE("OUT3MIXER_SWITCH", WM8978_POWER_MANAGEMENT_1,6, 1,0),
 	SOC_SINGLE("OUT3POWER_SWITCH", WM8978_POWER_MANAGEMENT_3,7, 1,0),
 
-	
+
 	SOC_SINGLE("BUFIOEN", WM8978_POWER_MANAGEMENT_3,2, 1,0),
 	SOC_SINGLE("DCBUFEN", WM8978_POWER_MANAGEMENT_3,8, 1,0),
     SOC_SINGLE("DAC_AUTO_MUTE", WM8978_DAC_CONTROL,2, 1,0),
@@ -365,7 +421,7 @@ static const struct snd_kcontrol_new wm8978_snd_controls[] = {
 	 //spkcall
 	SOC_SINGLE("BYPL_TO_OUT3", WM8978_OUT3_MIXER_CONTROL,2, 1,0),
 	SOC_DOUBLE_R("MIC_IN_SWITCH", WM8978_LEFT_INP_PGA_CONTROL,WM8978_RIGHT_INP_PGA_CONTROL, 6, 1,1),
-//hpcall	
+//hpcall
 	SOC_SINGLE("OUT4MIXER_ENABLE", WM8978_POWER_MANAGEMENT_1,7, 1,0),
 	SOC_SINGLE("OUT3MIXER_ENABLE", WM8978_POWER_MANAGEMENT_1,6, 1,0),
     SOC_SINGLE("OUT4_ENABLE", WM8978_POWER_MANAGEMENT_3,8, 1,0),
@@ -373,14 +429,14 @@ static const struct snd_kcontrol_new wm8978_snd_controls[] = {
 
 	SOC_SINGLE("BYPR_TO_OUT4", WM8978_OUT4_MIXER_CONTROL,2, 1,0),
 	SOC_SINGLE("OUT4_TO_OUT3", WM8978_OUT3_MIXER_CONTROL,3, 1,0),
-	
+
 	SOC_DOUBLE_R("Capture_PGA_ZC_Switch",
 		WM8978_LEFT_INP_PGA_CONTROL, WM8978_RIGHT_INP_PGA_CONTROL,
 		7, 1, 0),
 //capture
-	
+
 	SOC_SINGLE("Mic_Bias", WM8978_POWER_MANAGEMENT_1, 4, 1,0),
-	
+
 	SOC_SINGLE("Mic_VSEL", WM8978_INPUT_CONTROL, 8, 1,0),
 	/* OUT1 - Headphones */
 	SOC_DOUBLE_R("Headphone_Playback_ZC_Switch",
@@ -389,6 +445,9 @@ static const struct snd_kcontrol_new wm8978_snd_controls[] = {
 	SOC_DOUBLE_R_TLV("Headphone_Playback_Volume",
 		WM8978_LOUT1_HP_CONTROL, WM8978_ROUT1_HP_CONTROL,
 		0, 63, 0, spk_tlv),
+//	SOC_DOUBLE_R_EXT_TLV("Headphone_Playback_Volume",
+//		WM8978_LOUT1_HP_CONTROL, WM8978_ROUT1_HP_CONTROL,
+//		0, 63, 0, wm8978_get_hp_voice,wm8978_set_hp_voice,spk_tlv),
 
 	/* OUT2 - Speakers */
 	SOC_DOUBLE_R("Speaker_Playback_ZC_Switch",
@@ -529,7 +588,7 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"Left_Output_Mixer", "PCM_Playback_Switch", "Left_DAC"},
 	{"Left_Output_Mixer", "Aux_Playback_Switch", "LAUX"},
 	{"Left_Output_Mixer", "Line_Bypass_Switch", "Left_Boost_Mixer"},
-	
+
 	/* Outputs */
 	{"Right_Headphone_Out", NULL, "Right_Output_Mixer"},
 	{"RHP", NULL, "Right_Headphone_Out"},
@@ -567,7 +626,7 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"Left_Input_Mixer", "L2_Switch", "L2"},
 	{"Left_Input_Mixer", "MicN_Switch", "LMICN"},
 	{"Left_Input_Mixer", "MicP_Switch", "LMICP"},
-	
+
 };
 
 static int wm8978_add_widgets(struct snd_soc_codec *codec)
@@ -1042,12 +1101,12 @@ static int wm8978_mute(struct snd_soc_dai *dai, int mute)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	wm8978_dbg("%s: %d\n", __func__, mute);
-	
+
 	if (mute) {
 		if(DOCK_KEYBOARD_FLAG==1) {
 			gpio_direction_output(EXYNOS4_GPL2(4),0);
 		}
-		
+
 		if(!strcmp(g_selected_utmodel,"s702")) {
 			if (!g_amplifier_type)
 				gpio_direction_output(EXYNOS4212_GPM1(4),0);
@@ -1058,14 +1117,15 @@ static int wm8978_mute(struct snd_soc_dai *dai, int mute)
 		}
 
 		// add by Leslie
-		snd_soc_update_bits(codec, WM8978_LOUT1_HP_CONTROL, 0x3F, 0x00);
-		snd_soc_update_bits(codec, WM8978_ROUT1_HP_CONTROL, 0x3F, 0x00);
+	//	snd_soc_update_bits(codec, WM8978_LOUT1_HP_CONTROL, 0x3F, 0x00);
+	//	snd_soc_update_bits(codec, WM8978_ROUT1_HP_CONTROL, 0x3F, 0x00);
+		set_hp_voice(codec,0);
 
 		snd_soc_update_bits(codec, 52, 0x40, 0x40);
 	 	snd_soc_update_bits(codec, 53, 0x40, 0x40);
 		snd_soc_update_bits(codec, 54, 0x40, 0x40);
 	 	snd_soc_update_bits(codec, 55, 0x40, 0x40);
-		 
+
 	 	snd_soc_update_bits(codec, WM8978_DAC_CONTROL, 0x40, 0x40);
 
 	}
@@ -1078,7 +1138,7 @@ static int wm8978_mute(struct snd_soc_dai *dai, int mute)
 			if ((hdmi_plug_flag == 0) && (earphone_inset_flag == 0))
 				gpio_direction_output(EXYNOS4212_GPM1(4),1);
 		}
-			
+
 		if(b_spk_high_enable) {
 			gpio_direction_output(EXYNOS4212_GPM1(4),1);
 			msleep(220);  // wake up time for some amplifier
@@ -1086,9 +1146,9 @@ static int wm8978_mute(struct snd_soc_dai *dai, int mute)
 
 		if(earphone_inset_flag){
 			snd_soc_update_bits(codec, 52, 0x40, 0x0);
-			snd_soc_update_bits(codec, 53, 0x40, 0x0);	
+			snd_soc_update_bits(codec, 53, 0x40, 0x0);
 		}
-		
+
 		//add by eking 20130407 for single wifi  s101 error-AP
 		//gpio_direction_output(EXYNOS4212_GPM1(4),1);
 		//add end
@@ -1102,10 +1162,10 @@ static int wm8978_mute(struct snd_soc_dai *dai, int mute)
 
 void wm8978_set_bias(int flag)
 {
-	
+
 	if(flag)
 		snd_soc_update_bits(wm8978_codec,0x01,0x10,0x10);
-	else		
+	else
 		snd_soc_update_bits(wm8978_codec,0x01,0x10,0);
 }
 EXPORT_SYMBOL(wm8978_set_bias);
@@ -1163,13 +1223,13 @@ static int wm8978_startup(struct snd_pcm_substream *stream,struct snd_soc_dai *d
 	if(!strcmp(g_selected_utmodel,"s901") || !strcmp(g_selected_utmodel,"s101")){
 		if(!earphone_inset_flag && !DOCK_KEYBOARD_FLAG && !hdmi_plug_flag)
 			gpio_direction_output(EXYNOS4212_GPM1(4),1);//spk on
-		else		
+		else
 			gpio_direction_output(EXYNOS4212_GPM1(4),0);//spk off
 		return 0;
 	}else  {
 		if(!earphone_inset_flag && !hdmi_plug_flag)
 			gpio_direction_output(EXYNOS4212_GPM1(4),1);//spk on
-		else		
+		else
 			gpio_direction_output(EXYNOS4212_GPM1(4),0);//spk off
 		return 0;
 
@@ -1232,8 +1292,8 @@ static int wm8978_resume(struct snd_soc_codec *codec)
 
 	if (b_spk_high_enable) {
 		 gpio_direction_output(EXYNOS4212_GPM1(4),0);
-	} 
-		 
+	}
+
 	/* Sync reg_cache with the hardware */
 	for (i = 0; i < ARRAY_SIZE(wm8978_reg); i++) {
 		if (i == WM8978_RESET)
@@ -1241,7 +1301,7 @@ static int wm8978_resume(struct snd_soc_codec *codec)
 		if (cache[i] != wm8978_reg[i])
 			snd_soc_write(codec, i, cache[i]);
 	}
-	
+
 
 	wm8978_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
 
@@ -1349,7 +1409,7 @@ static __devinit int wm8978_i2c_probe(struct i2c_client *i2c,
 		b_spk_high_enable = false;
 	}
 
-	if(!strcmp(g_selected_utmodel,"s702") 
+	if(!strcmp(g_selected_utmodel,"s702")
 		|| !strcmp(g_selected_utmodel,"s703")
 		|| !strcmp(g_selected_utmodel,"d816")
 		|| !strcmp(g_selected_utmodel,"s501")
@@ -1359,11 +1419,11 @@ static __devinit int wm8978_i2c_probe(struct i2c_client *i2c,
 		printk("_+_+wm8978 select s702\n");
 
 		memcpy(wm8978_reg, wm8978_reg_702, sizeof(wm8978_reg_702));
-		
+
 //		wm8978_reg[10] = 0x000c;	// reg 0x000a
 //		wm8978_reg[49] = 0x005f;    // reg 0x0031 [5] [6]//cross-coupling
 	}
-#endif	
+#endif
 	ret = snd_soc_register_codec(&i2c->dev,
 			&soc_codec_dev_wm8978, &wm8978_dai, 1);
 	if (ret < 0)
@@ -1399,7 +1459,7 @@ extern char g_selected_codec[32];
 static int __init wm8978_modinit(void)
 {
 	int ret = 0;
-	
+
 	if(!strcmp(g_selected_codec,"wm8978")){
 			printk("%s,g_selected_codec:%s\n",__FUNCTION__,g_selected_codec);
 		}else{
