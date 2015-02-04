@@ -61,3 +61,10 @@ int gsm_power_read(struct power_gpio_node node)
 {
 	return gsm_power_switch;
 }
+
+void power_gpio_on_boot_common(const struct power_gpio_oem * p)
+{
+	write_power_item_value(POWER_SPK_EN, 0);
+	write_power_item_value(POWER_5V_EN, 1);
+	gpio_direction_output(GPIO_USB_HUB2_RESET, GPIO_LEVEL_LOW);
+}

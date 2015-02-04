@@ -473,7 +473,7 @@ EXPORT_SYMBOL_GPL(update_status_flag);
 int TP_I2C_ADDR = 0;
 EXPORT_SYMBOL_GPL(TP_I2C_ADDR);
 /******************************  add by urbettr for OEM end *****************************************/
-
+extern char s_selected_lcd_name[32];
 
 
 
@@ -2306,6 +2306,123 @@ static void __init mipi_fb_init(void)
 
 	dsim_lcd_info = dsim_pd->dsim_lcd_info;
 	dsim_lcd_info->lcd_panel_info = (void *)&dummy_mipi_lcd;
+
+	mipi_ddi_pd = (struct mipi_ddi_platform_data *)
+		dsim_lcd_info->mipi_ddi_pd;
+	mipi_ddi_pd->lcd_reset = reset_lcd;
+	mipi_ddi_pd->lcd_power_on = lcd_power_on;
+
+	platform_device_register(&s5p_device_dsim);
+
+	s3cfb_set_platdata(&fb_platform_data);
+
+	printk(KERN_INFO "platform data of %s lcd panel has been registered.\n",
+			dsim_pd->lcd_panel_name);
+}
+#else //defined(CONFIG_FB_S5P_MIPI_S500HD)#if defined(CONFIG_FB_S5P_MIPI_DSIM)
+#define		LCD_BUS_NUM	3
+#define		DISPLAY_CS	EXYNOS4_GPB(5)
+#define		DISPLAY_CLK	EXYNOS4_GPB(4)
+#define		DISPLAY_SI	EXYNOS4_GPB(7)
+
+static struct s3cfb_lcd s500hd_mipi_lcd = {
+	.width	= 720,
+	.height	= 1280,
+	.bpp	= 24,
+	.freq	= 65,
+
+	.timing = {
+		.h_fp = 10,
+		.h_bp = 10,
+		.h_sw = 3,
+		.v_fp = 10,
+		.v_fpe = 1,
+		.v_bp = 10,
+		.v_bpe = 1,
+		.v_sw = 3,
+		//.cmd_allow_len = 4,
+		.cmd_allow_len = 11,	/*v_fp=stable_vfp + cmd_allow_len */
+	},
+
+	.polarity = {
+		.rise_vclk = 1,
+		.inv_hsync = 0,
+		.inv_vsync = 0,
+		.inv_vden = 0,
+	},
+};
+
+static struct s3c_platform_fb fb_platform_data __initdata = {
+	.hw_ver		= 0x70,
+	.clk_name	= "sclk_lcd",
+	.nr_wins	= 5,
+	.default_win	= CONFIG_FB_S5P_DEFAULT_WINDOW,
+	.swap		= FB_SWAP_HWORD | FB_SWAP_WORD,
+};
+
+static void lcd_cfg_gpio(void)
+{
+	return;
+}
+
+static int reset_lcd(void)
+{
+	int err = 0;
+	printk("_+_+mipi reset lcd_+_+_\n");
+	/* fire nRESET on power off */
+
+	s3c_gpio_cfgpin(EXYNOS4212_GPM2(0), S3C_GPIO_SFN(1));
+	gpio_direction_output(EXYNOS4212_GPM2(0),1);
+	
+	s3c_gpio_cfgpin(EXYNOS4212_GPM2(3), S3C_GPIO_SFN(1));
+	gpio_direction_output(EXYNOS4212_GPM2(3),1);	
+	//mdelay(100);
+
+	s3c_gpio_cfgpin(EXYNOS4212_GPM2(4), S3C_GPIO_SFN(1));
+	gpio_direction_output(EXYNOS4212_GPM2(4),1);
+
+	//mdelay(10);
+	gpio_direction_output(EXYNOS4212_GPM2(4),0);
+
+	mdelay(10);
+	gpio_direction_output(EXYNOS4212_GPM2(4),1);
+	
+	return 0;
+}
+
+static int lcd_power_on(void *pdev, int enable)
+{
+	printk(KERN_INFO"_+_+mipi lcd_power_on+_+_\n");
+	return 1;
+}
+
+static void __init mipi_fb_init(void)
+{
+	struct s5p_platform_dsim *dsim_pd = NULL;
+	struct mipi_ddi_platform_data *mipi_ddi_pd = NULL;
+	struct dsim_lcd_config *dsim_lcd_info = NULL;
+
+	printk(KERN_INFO"_+_+%s_+_+_\n",__func__);
+
+	/* gpio pad configuration for rgb and spi interface. */
+	lcd_cfg_gpio();
+
+	/*
+	 * register lcd panel data.
+	 */
+	dsim_pd = (struct s5p_platform_dsim *)
+		s5p_device_dsim.dev.platform_data;
+
+	strcpy(dsim_pd->lcd_panel_name, "mipi_s500hd");
+
+	dsim_lcd_info = dsim_pd->dsim_lcd_info;
+	dsim_lcd_info->lcd_panel_info = (void *)&s500hd_mipi_lcd;
+
+	/* 483Mbps for Q1 */
+	//dsim_pd->dsim_info->p = 3;
+	//dsim_pd->dsim_info->m = 100;
+	//dsim_pd->dsim_info->s = 1;
+
 
 	mipi_ddi_pd = (struct mipi_ddi_platform_data *)
 		dsim_lcd_info->mipi_ddi_pd;
@@ -4216,7 +4333,8 @@ static void __init smdk4x12_machine_init(void)
 	android_pmem_set_platdata();
 #endif
 #if defined(CONFIG_FB_S5P_MIPI_DSIM)
-	mipi_fb_init();
+	if(!strcmp("s5hd", s_selected_lcd_name))
+		mipi_fb_init();
 #endif
 //#ifdef CONFIG_FB_S3C
 //	dev_set_name(&s5p_device_fimd0.dev, "s3cfb.0");

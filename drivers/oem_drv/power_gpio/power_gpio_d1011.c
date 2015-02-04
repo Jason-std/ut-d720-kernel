@@ -1,18 +1,14 @@
 #include <linux/module.h>
 #include <linux/init.h>
-#include <linux/proc_fs.h>
-#include <linux/timer.h>
 #include <asm/io.h>
 #include <asm/sizes.h>
 #include <asm/mach-types.h>
-
-#include "../../../fs/proc/internal.h"
-
 #include <plat/gpio-cfg.h>
 #include <linux/gpio.h>
 #include <mach/gpio.h>
 #include <mach/regs-gpio.h>
 #include "urbetter/power_gpio.h"
+
 #include "power_gpio_common.h"
 #include <urbetter/check.h>
 
@@ -48,25 +44,19 @@ static const struct power_gpio_node s_gpio_node_d1011[] =
 //	{POWER_STATE_AC,		EXYNOS4_GPX0(2), 1, 0, NULL},  //EINT2
 //	{POWER_STATE_CHARGE,	EXYNOS4_GPX2(7), 1, 0, NULL}, //EINT23
 
-	{POWER_FCAM_28V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
-	{POWER_FCAM_18V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
-	{POWER_FCAM_PD,	EXYNOS4_GPL0(1), 1, 1, NULL}, 
-	{POWER_FCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
+	{POWER_FCAM_28V,	EXYNOS4212_GPM3(0), 1, 1, NULL},
+	{POWER_FCAM_18V,	EXYNOS4212_GPM3(0), 1, 1, NULL},
+	{POWER_FCAM_PD,	EXYNOS4_GPL0(1), 1, 1, NULL},
+	{POWER_FCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL},
 
-	{POWER_BCAM_28V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
-	{POWER_BCAM_18V,	EXYNOS4212_GPM3(0), 1, 1, NULL}, 
-	{POWER_BCAM_PD,	EXYNOS4_GPL0(0), 1, 1, NULL}, 
-	{POWER_BCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL}, 
+	{POWER_BCAM_28V,	EXYNOS4212_GPM3(0), 1, 1, NULL},
+	{POWER_BCAM_18V,	EXYNOS4212_GPM3(0), 1, 1, NULL},
+	{POWER_BCAM_PD,	EXYNOS4_GPL0(0), 1, 1, NULL},
+	{POWER_BCAM_RST,	EXYNOS4212_GPJ1(4), 1, 1, NULL},
 };
 
-static void power_gpio_on_boot(const struct power_gpio_oem * p)
-{
-	write_power_item_value(POWER_SPK_EN, 0);
-	write_power_item_value(POWER_5V_EN, 1);
-	gpio_direction_output(GPIO_USB_HUB2_RESET, GPIO_LEVEL_LOW);	
-}
 
-REGISTER_POWER_GPIO(s_gpio_node_d1011,d1011,1,power_gpio_on_boot);
+REGISTER_POWER_GPIO(s_gpio_node_d1011,d1011,1,power_gpio_on_boot_common);
 
 
 MODULE_DESCRIPTION("power_gpio config proc file");

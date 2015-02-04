@@ -8,46 +8,46 @@
 enum power_item
 {
 	POWER_5V_EN=0,
-#if 0		
+#if 0
 	POWER_ARM_EN,
 	POWER_3D_EN,
-#endif	
+#endif
 	POWER_INT_EN,
-		
+
 //	POWER_CAM_EN,
 //	POWER_CAMA_PD, //camera A power down
 //	POWER_CAMB_PD, //camera B power down
 //	POWER_CAM_RST, //camera reset
-/*	
+/*
 	POWER_BT_EN,
 	POWER_BT_RST,
 	POWER_BT_LDO,
 	POWER_BT_WUP,	//cpu wake up bt
-*/	
+*/
 	POWER_GPS_RST,
 	POWER_GPS_EN,
 #if 1
 	POWER_WIFI_EN,	//wifi power enable
 	POWER_WIFI_LDO,   //wifi inter ldo enable
 #endif
-	POWER_GSM_SW,  
+	POWER_GSM_SW,
 	POWER_GSM_WUP,  //cpu wake up 3g/gsm
 
 	POWER_LCD33_EN,
 	POWER_LCD18_EN,
 	POWER_LVDS_PD,
 	POWER_BL_EN,
-	
+
 	POWER_HUB_RST,
 	POWER_HUB_CON, //high en
 	POWER_HUB2_EN,
 	POWER_HUB2_RST,
-	
+
 	POWER_SPK_EN,
-	
+
 	POWER_USB_SW,
 	POWER_MOTOR_EN,
-	
+
 	POWER_TS_RST,
 
 	POWER_STATE_AC,
@@ -110,7 +110,7 @@ static const struct power_gpio_oem __gpio_oem_##_name##_v##_pcb = {  \
 	.pcb = __stringify(_pcb),    \
 	.power_gpio_boot_init = func,   \
 	.count = ARRAY_SIZE(node),    \
-}   
+}
 
 
 #define MODULE_POWER_GPIO(NODE)  \
@@ -123,7 +123,7 @@ static void __exit __power_gpio_unreg(void)        \
 	power_gpio_unregister(&(NODE)); \
 }        \
 fs_initcall(__power_gpio_reg);   \
-module_exit(__power_gpio_unreg)  
+module_exit(__power_gpio_unreg)
 
 
 #define REGISTER_POWER_GPIO(node,_name,_pcb,func)  \

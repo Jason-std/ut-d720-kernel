@@ -534,7 +534,9 @@ unsigned char s5p_dsim_wr_data(unsigned int dsim_base,
 			#endif
         }
 		else{
+		#ifdef FROM_K860	
 			spin_unlock_irqrestore(&mipi_rw_lock, flags);
+		#endif
 			return DSIM_TRUE;
 		}
 			
@@ -792,6 +794,7 @@ static void s5p_dsim_set_clock(unsigned int dsim_base,
 
 static int s5p_dsim_late_resume_init_dsim(unsigned int dsim_base)
 {
+
 	if (dsim.pd->init_d_phy)
 		dsim.pd->init_d_phy(dsim.reg_base);
 
@@ -836,6 +839,7 @@ static int s5p_dsim_late_resume_init_dsim(unsigned int dsim_base)
 
 static int s5p_dsim_init_dsim(unsigned int dsim_base)
 {
+
 	if (dsim.pd->init_d_phy)
 		dsim.pd->init_d_phy(dsim.reg_base);
 
@@ -1172,7 +1176,9 @@ struct mipi_lcd_driver *scan_mipi_driver(const char *name)
 void s5p_dsim_early_suspend()
 {
 	u32 int_stat = 0;
+	printk(KERN_INFO"[DSIM][%s] \n", __func__);
 	pr_err("[DSIM][%s] \n", __func__);
+#if 	0	
 	if(!CYIT_EVT_BOARD){
 	if (dsim.mipi_ddi_pd->resume_complete == 0)
 		return;
@@ -1217,6 +1223,25 @@ void s5p_dsim_early_suspend()
 #if CONFIG_BUSFREQ_OPP_DSIM_LOCK
 	dev_unlock(dsim.bus_dev, dsim.dev);
 #endif
+
+#endif
+	dsim.mipi_ddi_pd->resume_complete = 0;
+
+	if (dsim.mipi_drv->suspend)
+		dsim.mipi_drv->suspend();
+
+	clk_disable(dsim.clock);
+
+	if (dsim.pd->mipi_power)
+		dsim.pd->mipi_power(0);
+
+	msleep(100);
+
+#ifdef CONFIG_EXYNOS_DEV_PD
+	/* disable the power domain */
+	pm_runtime_put(dsim.dev);
+#endif
+
 }
 
 irqreturn_t s5p_dsim_intr(struct platform_device *pdev)
@@ -1248,6 +1273,8 @@ irqreturn_t s5p_dsim_intr(struct platform_device *pdev)
 
 void s5p_dsim_late_resume()
 {
+	printk(KERN_INFO"[DSIM][%s] \n", __func__);
+#if 0	//ericli remove.	
 	if(lcd_id==LCD_BOE)
 	{
 		//========================================= for DVT 
@@ -1435,12 +1462,68 @@ mdelay(5);
 		mdelay(10);
 	}
 
+#endif
+
+#ifdef CONFIG_EXYNOS_DEV_PD
+	/* enable the power domain */
+	pm_runtime_get_sync(dsim.dev);
+#endif
+	/* MIPI SIGNAL ON */
+	if (dsim.pd->mipi_power)
+		dsim.pd->mipi_power(1);
+
+	/* reset lcd */
+	dsim.mipi_ddi_pd->lcd_reset();
+
+	mdelay(10);
+
+	clk_enable(dsim.clock);
+
+	mdelay(5);
+
+	s5p_dsim_late_resume_init_dsim(dsim.reg_base);
+	s5p_dsim_init_link(dsim.reg_base);
+
+	s5p_dsim_set_hs_enable(dsim.reg_base);
+	s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYCPU, 1);
+
+	
+#if 0
+	s5p_dsim_set_display_mode(dsim.reg_base, dsim.dsim_lcd_info, NULL);
+
+	s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYLCDC, 1);
+
+	s5p_dsim_set_interrupt_mask(dsim.reg_base, AllDsimIntr, 0);
+
+	dsim.mipi_ddi_pd->resume_complete = 1;
+
+	mdelay(10);
+#endif
+	/* initialize lcd panel */
+	if (dsim.mipi_drv->init)
+		dsim.mipi_drv->init();
+	else
+		dev_warn(dsim.dev, "init func is null.\n");
+
+	if (dsim.mipi_drv->resume)
+		dsim.mipi_drv->resume(NULL);
+
+	s5p_dsim_set_display_mode(dsim.reg_base, dsim.dsim_lcd_info, NULL);
+
+	s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYLCDC, 1);
+
+	s5p_dsim_set_interrupt_mask(dsim.reg_base, AllDsimIntr, 0);
+
+	dsim.mipi_ddi_pd->resume_complete = 1;	
+
 }
 
 #else
 #ifdef CONFIG_PM
 int s5p_dsim_suspend(struct platform_device *pdev, pm_message_t state)
 {
+	printk(KERN_INFO"[DSIM][%s] \n", __func__);
+	
 	dsim.mipi_ddi_pd->resume_complete = 0;
 
 	if (dsim.mipi_drv->suspend)
@@ -1456,6 +1539,7 @@ int s5p_dsim_suspend(struct platform_device *pdev, pm_message_t state)
 
 int s5p_dsim_resume(struct platform_device *pdev)
 {
+	printk(KERN_INFO"[DSIM][%s] \n", __func__);
 	if (dsim.pd->mipi_power)
 		dsim.pd->mipi_power(1);
 
@@ -1604,23 +1688,12 @@ extern struct s3cfb_lcd stuttgart_mipi_lcd_lg;
 #endif
 
 static int s5p_dsim_probe(struct platform_device *pdev)
-{  
-    printk("====%s is called====\n", __func__);
-    /*****************************/
-    if (CYIT_DVT_BOARD){
-        //lcd_id = LCD_BOE;
-        ESD_FOR_LCD =1;
-        //printk("%s:lcd_id is LCD_BOE\n",__func__);
-    }else if (CYIT_PVT_BOARD){
-        //lcd_id = LCD_LG;
-        ESD_FOR_LCD =0;
-       // printk("%s:lcd_id is LCD_LG\n",__func__ );    
-    }
-    /*****************************/
-    
-    struct resource *res;
+{
+	struct resource *res;
 	int ret = -1;
-	int err = 0;
+
+	printk("_+_+_+_%s,%s+_+_+_\n",__FUNCTION__,pdev->name);
+
 	dsim.pd = to_dsim_plat(&pdev->dev);
 	dsim.dev = &pdev->dev;
 #ifdef CONFIG_EXYNOS_DEV_PD
@@ -1629,50 +1702,22 @@ static int s5p_dsim_probe(struct platform_device *pdev)
 	/* enable the power domain */
 	pm_runtime_get_sync(&pdev->dev);
 #endif
-
-#if 1//ndef CONFIG_VIDEO_TVOUT
-	tv_regulator_vdd18 = regulator_get(NULL, "vdd18_mipi");
-	if (IS_ERR(tv_regulator_vdd18)) {
-		printk("%s: failed to get %s\n", __func__, "vdd18_mipi");
-		goto err_regulator;
-	}
-	regulator_enable(tv_regulator_vdd18);
-	tv_regulator_vdd10 = regulator_get(NULL, "vdd10_mipi");
-	if (IS_ERR(tv_regulator_vdd10)) {
-		printk("%s: failed to get %s\n", __func__, "vdd10_mipi");
-		goto err_regulator;
-	}
-	regulator_enable(tv_regulator_vdd10);
-#endif
-
 	/* set dsim config data, dsim lcd config data and lcd panel data. */
-	/* find lcd panel driver registered to mipi-dsi driver. */
-	dsim.mipi_drv = scan_mipi_driver(dsim.pd->lcd_panel_name);
-	if (dsim.mipi_drv == NULL) {
-		dev_err(&pdev->dev, "mipi_drv is NULL.\n");
-		goto mipi_drv_err;
-	}
-#if CONFIG_BUSFREQ_OPP_DSIM_LOCK
-	dsim.bus_dev = dev_get("exynos-busfreq");
-	dev_lock(dsim.bus_dev, dsim.dev, BUSFREQ_160MHZ);
-#endif
-
-
 	dsim.dsim_info = dsim.pd->dsim_info;
 	dsim.dsim_lcd_info = dsim.pd->dsim_lcd_info;
 	dsim.lcd_panel_info =
 		(struct s3cfb_lcd *)dsim.dsim_lcd_info->lcd_panel_info;
-	if (dsim.mipi_drv->lcd_panel_info)
-		dsim.pd->dsim_lcd_info->lcd_panel_info = (void *)dsim.mipi_drv->lcd_panel_info;
-
 	dsim.mipi_ddi_pd =
 		(struct mipi_ddi_platform_data *)dsim.dsim_lcd_info->mipi_ddi_pd;
 	dsim.mipi_ddi_pd->te_irq = dsim.pd->te_irq;
-    
-	if(CYIT_EVT_BOARD)
-		dsim.mipi_ddi_pd->resume_complete = 0;
-	else
-		dsim.mipi_ddi_pd->resume_complete = 1;
+
+	dsim.mipi_ddi_pd->resume_complete = 0;
+
+	if (dsim.pd->mipi_power)
+		dsim.pd->mipi_power(1);
+
+	/* reset lcd */
+	dsim.mipi_ddi_pd->lcd_reset();
 
 	/* clock */
 	dsim.clock = clk_get(&pdev->dev, dsim.pd->clk_name);
@@ -1710,38 +1755,22 @@ static int s5p_dsim_probe(struct platform_device *pdev)
 	}
 
 	/* find lcd panel driver registered to mipi-dsi driver. */
-/*	dsim.mipi_drv = scan_mipi_driver(dsim.pd->lcd_panel_name);
+	dsim.mipi_drv = scan_mipi_driver(dsim.pd->lcd_panel_name);
 	if (dsim.mipi_drv == NULL) {
 		dev_err(&pdev->dev, "mipi_drv is NULL.\n");
 		goto mipi_drv_err;
 	}
-*/
+
 	/* set lcd panel driver link */
 	dsim.mipi_drv->set_link((void *) dsim.mipi_ddi_pd, dsim.reg_base,
 		s5p_dsim_wr_data, NULL);
 
-	dsim.mipi_drv->probe(&pdev->dev);//LCD power on and backlight register
-
-	if (dsim.pd->mipi_power)
-		dsim.pd->mipi_power(1);
-
-	//dsim.mipi_ddi_pd->lcd_power_on(dsim.dev, 1);
-
-//========================================================//for EVT + DVT
-if ( CYIT_EVT_BOARD || CYIT_DVT_BOARD){
- 	/* reset lcd */
-	dsim.mipi_ddi_pd->lcd_reset(); // it is ok  
+	dsim.mipi_drv->probe(&pdev->dev);
 	s5p_dsim_init_dsim(dsim.reg_base);
 	s5p_dsim_init_link(dsim.reg_base);
-    /*dsim.mipi_drv->probe(&pdev->dev);*/
-	if(CYIT_DVT_BOARD){
-	        printk("\n\nBoard_ID is DVT\n\n");
-		 lcd_id = LCD_BOE;//important
-		    if (dsim.mipi_drv->pre_init)
-		     dsim.mipi_drv->pre_init();
-	}
-       else
-    		printk("\n\nBoard_ID is EVT\n\n");
+
+	s5p_dsim_set_hs_enable(dsim.reg_base);
+	s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYCPU, 1);
 
 	/* initialize lcd panel */
 	if (dsim.mipi_drv->init) {
@@ -1750,9 +1779,6 @@ if ( CYIT_EVT_BOARD || CYIT_DVT_BOARD){
 		dev_warn(&pdev->dev, "init func is null.\n");
 	}
 
-	s5p_dsim_set_hs_enable(dsim.reg_base);
-	s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYCPU, 1);
-    
 	if (dsim.mipi_drv->display_on)
 		dsim.mipi_drv->display_on(&pdev->dev);
 	else
@@ -1760,161 +1786,19 @@ if ( CYIT_EVT_BOARD || CYIT_DVT_BOARD){
 
 	s5p_dsim_set_display_mode(dsim.reg_base, dsim.dsim_lcd_info, NULL);
 	s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYLCDC, 1);
-//	msleep(100);
+	msleep(400);
 	dev_info(&pdev->dev, "mipi-dsi driver has been probed.\n");
 
-}else{
-//===============================================================// for PVT
-    printk("\n\nBoard_ID is PVT\n\n");
-	dsim.pd->dsim_info->p = 3;
-	dsim.pd->dsim_info->m = 63;
-	dsim.pd->dsim_info->s = 0;
-	dsim.pd->dsim_info->esc_clk = 20 * 1000000;
-#ifdef CONFIG_FB_S5P_BTL507212_MIPI_LCD
-	dsim.pd->dsim_lcd_info->lcd_panel_info= &btl507212_mipi_lcd;//stuttgart_mipi_lcd_lg
-#endif
-	/* reset lcd */
-	dsim.mipi_ddi_pd->lcd_reset();// it is ok
-	s5p_dsim_init_dsim(dsim.reg_base);
-	s5p_dsim_init_link(dsim.reg_base);
-    //read lcd id
-    if (dsim.mipi_drv->read_id) {
-        sub_id = dsim.mipi_drv->read_id();
-        printk("sub_id = %#x \n", sub_id);
-    } else {
-       dev_warn(&pdev->dev, "read_id func is null.\n");
-    } 
-    if (sub_id == BOE_ID){// for PVT support LCD_BOE       
-       printk("PVT support LCD_BOE\n");
-       
-       register_i2c0_board_info(GOODIX);      
-       lcd_id = LCD_BOE;//important
-       ESD_FOR_LCD =1;
-
-       /*dsim.mipi_drv->probe(&pdev->dev);*/
-       
-       if (dsim.mipi_drv->pre_init)
-       dsim.mipi_drv->pre_init();       
-       /* initialize lcd panel */
-       if (dsim.mipi_drv->init) {
-          dsim.mipi_drv->init();
-       } else {
-          dev_warn(&pdev->dev, "init func is null.\n");
-       }        
-       s5p_dsim_set_hs_enable(dsim.reg_base);
-       s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYCPU, 1);
-            
-       if (dsim.mipi_drv->display_on)
-          dsim.mipi_drv->display_on(&pdev->dev);
-       else
-          dev_warn(&pdev->dev, "display_on func is null.\n");
-        
-       s5p_dsim_set_display_mode(dsim.reg_base, dsim.dsim_lcd_info, NULL);
-       s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYLCDC, 1);
-        //  msleep(100);
-       dev_info(&pdev->dev, "mipi-dsi driver has been probed.\n");  
-        
-    }else{// for PVT support LCD_LG
-        printk("PVT support LCD_LG\n\n");
-         lcd_id = LCD_LG;//important
-
-	dsim.pd->dsim_info->p = 3;
-	dsim.pd->dsim_info->m = 55;
-	dsim.pd->dsim_info->s = 0;
-	dsim.pd->dsim_info->esc_clk = 5 * 1000000;
-#ifdef CONFIG_FB_S5P_BTL507212_MIPI_LCD
-	dsim.pd->dsim_lcd_info->lcd_panel_info= &stuttgart_mipi_lcd_lg;//
-#endif
-	/* reset lcd */
-	dsim.mipi_ddi_pd->lcd_reset();// it is ok
-	s5p_dsim_init_dsim(dsim.reg_base);
-	s5p_dsim_init_link(dsim.reg_base);
-		 
-        register_i2c0_board_info(IST30XX);
-
-        /*dsim.mipi_drv->probe(&pdev->dev);*/
-#ifdef LP_SEND_CMD
-        if (dsim.mipi_drv->init) {
-            dsim.mipi_drv->init();
-        } else {
-            dev_warn(&pdev->dev, "init func is null.\n");
-        }
-    
-        if (dsim.mipi_drv->display_on)
-            dsim.mipi_drv->display_on(&pdev->dev);
-        else
-            dev_warn(&pdev->dev, "display_on func is null.\n");
-#endif
-        s5p_dsim_set_hs_enable(dsim.reg_base);
-        s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYCPU, 1);
-    
-#ifdef HS_SEND_CMD
-            if (dsim.mipi_drv->init) {
-                    dsim.mipi_drv->init();
-            } else {
-                    dev_warn(&pdev->dev, "init func is null.\n");
-            }
-        
-            if (dsim.mipi_drv->display_on)
-                dsim.mipi_drv->display_on(&pdev->dev);
-            else
-                dev_warn(&pdev->dev, "display_on func is null.\n");
-#endif    
-        s5p_dsim_set_display_mode(dsim.reg_base, dsim.dsim_lcd_info, NULL);
-        s5p_dsim_set_data_transfer_mode(dsim.reg_base, DSIM_TRANSFER_BYLCDC, 1);
-    //  msleep(100);
-        dev_info(&pdev->dev, "mipi-dsi driver has been probed.\n");
-   }
-}
-//========================================================// for DVT ESD TEST
-    if (ESD_FOR_LCD) {
-            printk("\n\ns5p-dsim.c enter esd test code for LCD_BOE\n\n");
-            INIT_DELAYED_WORK(&check_hs_toggle_work, \
-                    dsim_check_hs_toggle_work_q_handler);
-            /* clear interrupt */
-            u32 int_stat = 0xffffffff;
-            writel(int_stat, dsim.reg_base + S5P_DSIM_INTSRC);//全部写1清除中断源
-    
-            /* enable interrupts */
-            int_stat = readl(dsim.reg_base + S5P_DSIM_INTMSK);
-    
-            int_stat &= ~((0x01<<S5P_DSIM_INT_BTA) | (0x01<<S5P_DSIM_INT_RX_TIMEOUT) |
-                    (0x01<<S5P_DSIM_INT_BTA_TIMEOUT) | (0x01 << S5P_DSIM_INT_RX_DONE) |
-                    (0x01<<S5P_DSIM_INT_RX_TE) | (0x01<<S5P_DSIM_INT_RX_ACK) |
-                    (0x01<<S5P_DSIM_INT_RX_ECC_ERR) | (0x01<<S5P_DSIM_IMT_RX_CRC_ERR) |
-                    (0x01<<S5P_DSIM_INT_SFR_FIFO_EMPTY));
-    
-            int_stat = 0xffffffff;
-            writel(int_stat, dsim.reg_base + S5P_DSIM_INTMSK); //全部写1关闭所有中断 
-            res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-            if (!res) {
-                dev_err(&pdev->dev, "failed to request dsim irq resource\n");
-                ret = -EINVAL;
-                goto err_clk_disable;
-            }
-            ret = request_irq(res->start, (void *)s5p_dsim_isr, IRQF_DISABLED, pdev->name, &dsim);
-            if (ret != 0) {
-                dev_err(&pdev->dev, "failed to request dsim irq\n");
-                ret = -EINVAL;
-                goto err_clk_disable;
-            }
-            s5p_dsim_frame_done_interrupt_enable(1);//开启帧中断
-    }
-//---------------------------------------------------
-
-
-
-#if 0
 #ifdef CONFIG_HAS_WAKELOCK
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	dsim.early_suspend.suspend = s5p_dsim_early_suspend;
 	dsim.early_suspend.resume = s5p_dsim_late_resume;
 	dsim.early_suspend.level = EARLY_SUSPEND_LEVEL_DISABLE_FB;
 	register_early_suspend(&dsim.early_suspend);
-#endif	
 #endif
 #endif
-	printk("[wenpin] succeed\n");
+
+	printk("_+_+_+_%s+_+_+END_\n",__FUNCTION__);
 
 	return 0;
 
@@ -1923,12 +1807,6 @@ mipi_drv_err:
 	iounmap((void __iomem *) dsim.reg_base);
 err_clk_disable:
 	clk_disable(dsim.clock);
-#if 1//ndef CONFIG_VIDEO_TVOUT
-err_regulator:
-	regulator_put(tv_regulator_vdd18);	
-	regulator_put(tv_regulator_vdd10);
-	return err;
-#endif	
 
 	return ret;
 }
@@ -1988,6 +1866,7 @@ static void s5p_dsim_unregister(void)
 	platform_driver_unregister(&s5p_dsim_driver);
 }
 
+//late_initcall(s5p_dsim_register);
 module_init(s5p_dsim_register);
 module_exit(s5p_dsim_unregister);
 

@@ -106,6 +106,12 @@ config FB_S5P_UT_LCD
 	help
 	  This enables support for oem_drv multi-LCD selecter
 
+config FB_S5P_MIPI_S500HD
+	bool "MIPI S500HD"
+	depends on MACH_SMDKV310 || MACH_SMDKC210 || MACH_SMDK4X12
+	help
+	  This enables support for urbetter multi-LCD selecter
+
 config FB_S5P_WA101S
 	bool "WA101S"
 	depends on MACH_SMDKV310 || MACH_SMDKC210 || MACH_SMDK4X12

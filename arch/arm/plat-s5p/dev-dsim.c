@@ -20,23 +20,25 @@
 #include <mach/map.h>
 #include <mach/dsim.h>
 #include <mach/mipi_ddi.h>
+#include <linux/gpio.h>
+#include <plat/gpio-cfg.h>
 
 static struct dsim_config dsim_info = {
 	.auto_flush = false,		/* main frame fifo auto flush at VSYNC pulse */
 
 	.eot_disable = false,		/* only DSIM_1_02 or DSIM_1_03 */
 
-	.auto_vertical_cnt = true,
-	.hse = false,
-	.hfp = false,
-	.hbp = false,
-	.hsa = false,
+	.auto_vertical_cnt = false,
+	.hse = true,
+	.hfp = true,
+	.hbp = true,
+	.hsa = true,
 
-	.e_no_data_lane = DSIM_DATA_LANE_2,
+	.e_no_data_lane = DSIM_DATA_LANE_4,
 	.e_byte_clk = DSIM_PLL_OUT_DIV8,
 
-	.p = 3,
-	.m = 90,
+	.p = 2,
+	.m = 100,
 	.s = 1,
 
 	.pll_stable_time = 500,		/* D-PHY PLL stable time spec :min = 200usec ~ max 400usec */
@@ -60,7 +62,7 @@ static struct dsim_lcd_config dsim_lcd_info = {
 
 	.parameter[DSI_VIRTUAL_CH_ID]	= (unsigned int) DSIM_VIRTUAL_CH_0,
 	.parameter[DSI_FORMAT]		= (unsigned int) DSIM_24BPP_888,
-	.parameter[DSI_VIDEO_MODE_SEL]	= (unsigned int) DSIM_NON_BURST_SYNC_PULSE,
+	.parameter[DSI_VIDEO_MODE_SEL]	= (unsigned int) DSIM_BURST,
 
 	.mipi_ddi_pd		= (void *) &mipi_ddi_pd,
 };
@@ -80,6 +82,14 @@ static struct resource s5p_dsim_resource[] = {
 
 static void s5p_dsim_mipi_power(int enable)
 {
+	
+	printk("_+_+_%s_+_+\n",__func__);
+
+	s3c_gpio_cfgpin(EXYNOS4212_GPM2(0), S3C_GPIO_SFN(1));
+	gpio_direction_output(EXYNOS4212_GPM2(0),1);
+	
+	s3c_gpio_cfgpin(EXYNOS4212_GPM2(3), S3C_GPIO_SFN(1));
+	gpio_direction_output(EXYNOS4212_GPM2(3),1);	
 	return;
 }
 

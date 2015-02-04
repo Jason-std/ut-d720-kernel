@@ -598,7 +598,36 @@ static struct s3cfb_lcd s_ut_lcd_param[] =
 			.inv_vden = 0,
 		},
 
-	},			
+	},
+
+	{
+		.name = "s5hd",
+		.init_ldi = NULL,
+		.width	= 720,
+		.height	= 1280,
+		.bpp	= 24,
+		.freq	= 65,
+			
+		.timing = {
+			.h_fp = 10,
+			.h_bp = 10,
+			.h_sw = 3,
+			.v_fp = 10,
+			.v_fpe = 1,
+			.v_bp = 10,
+			.v_bpe = 1,
+			.v_sw = 3,
+			//.cmd_allow_len = 4,
+			.cmd_allow_len = 11,	/*v_fp=stable_vfp + cmd_allow_len */
+		},
+		.polarity = {
+			.rise_vclk = 1,
+			.inv_hsync = 0,
+			.inv_vsync = 0,
+			.inv_vden = 0,
+		},
+
+	},	
 
 };
 
