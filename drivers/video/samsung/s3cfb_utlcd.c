@@ -621,7 +621,7 @@ static struct s3cfb_lcd s_ut_lcd_param[] =
 			.cmd_allow_len = 11,	/*v_fp=stable_vfp + cmd_allow_len */
 		},
 		.polarity = {
-			.rise_vclk = 1,
+			.rise_vclk = 0,
 			.inv_hsync = 0,
 			.inv_vsync = 0,
 			.inv_vden = 0,
