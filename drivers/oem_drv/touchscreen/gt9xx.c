@@ -64,7 +64,7 @@
 
 
 static int GTP_MAX_HEIGHT =1280;
-static int GTP_MAX_WIDTH = 800;
+static int GTP_MAX_WIDTH = 800;  ///d720
 static int model_tp   = 8001; 
 
 
@@ -438,10 +438,15 @@ GTP_DEBUG("ID:%d, X:%d, Y:%d, W:%d", id, x, y, w);
 #if GTP_ICS_SLOT_REPORT
     input_mt_slot(ts->input_dev, id);
     input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, id);
-	
+	//printk("GTP(%d,%d)\n",x,y);
 	if(strncmp(g_selected_utmodel, "d1011", strlen("d1011")) == 0) {
     	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (1280-x));
     	input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (800-y));
+	}
+	
+	else if(strncmp(g_selected_utmodel, "d521", strlen("d521")) == 0) {
+    	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (x));
+    	input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (y));
 	}
 	else{
     	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
@@ -449,7 +454,6 @@ GTP_DEBUG("ID:%d, X:%d, Y:%d, W:%d", id, x, y, w);
 	}
     input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, w);
     input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, w);	
-	//printk("GTP(%d,%d)\n",1280-x,800-y);
 #else
     input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
     input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, y);
@@ -1210,6 +1214,12 @@ static s32 gtp_init_panel(struct goodix_ts_data *ts)
 		send_cfg_buf[0] = cfg_info_group1;
 		cfg_info_len[0] = CFG_GROUP_LEN(cfg_info_group1);
 	}
+	
+	else if(strncmp(g_selected_utmodel, "d521", strlen("d521")) == 0)
+	{
+		send_cfg_buf[0] = CTP_CFG_GROUP1_D521;
+		cfg_info_len[0] = CFG_GROUP_LEN(CTP_CFG_GROUP1_D521);
+	}
 	/*
 		cfg_info_len[1] = CFG_GROUP_LEN(cfg_info_group2);
 		//cfg_info_len[2] = CFG_GROUP_LEN(cfg_info_group3);
@@ -1718,6 +1728,14 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
 			GTP_MAX_WIDTH =800 ;
 			model_tp   = 1002; 
 #endif
+
+		if(strncmp(g_selected_utmodel, "d521", strlen("d521")) == 0) {
+			printk(">>>> d521 resolute!\n");
+			GTP_MAX_HEIGHT =1280;
+			GTP_MAX_WIDTH = 720;
+			model_tp   = 1002; 
+		} 
+
 	 
 	 //add by eking  20130812	 
 #if 1
