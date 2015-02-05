@@ -448,10 +448,10 @@ GTP_DEBUG("ID:%d, X:%d, Y:%d, W:%d", id, x, y, w);
 		
 	//	printk("d521 -----------------------GTP(%d,%d)\n",y,1280-x);
 		
-    	//input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (x));
-    	//input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (y));
-    	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (y)); //kaka
-    	input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (1280-x));
+    	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (x));
+    	input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (y));
+    	//input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (y)); //kaka
+    	//input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (1280-x));
 	}
 	else{
     	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
@@ -1735,12 +1735,12 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
 #endif
 
 		if(strncmp(g_selected_utmodel, "d521", strlen("d521")) == 0) {
-			printk(">>>> d521 resolute!\n");
-			//GTP_MAX_HEIGHT =1280;
-			//GTP_MAX_WIDTH = 720;
+			//printk(">>>> d521 resolute!\n");
+			GTP_MAX_HEIGHT =1280;
+			GTP_MAX_WIDTH = 720;
 			
-			GTP_MAX_HEIGHT =720;//KAKa
-			GTP_MAX_WIDTH = 1280;
+			//GTP_MAX_HEIGHT =720;//KAKa
+			//GTP_MAX_WIDTH = 1280;
 			model_tp   = 1002; 
 		} 
 
