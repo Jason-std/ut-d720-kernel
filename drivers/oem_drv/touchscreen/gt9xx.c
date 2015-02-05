@@ -438,7 +438,7 @@ GTP_DEBUG("ID:%d, X:%d, Y:%d, W:%d", id, x, y, w);
 #if GTP_ICS_SLOT_REPORT
     input_mt_slot(ts->input_dev, id);
     input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, id);
-	printk("GTP(%d,%d)\n",x,y);
+	//printk("GTP(%d,%d)\n",x,y);
 	if(strncmp(g_selected_utmodel, "d1011", strlen("d1011")) == 0) {
     	input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (1280-x));
     	input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (800-y));
@@ -446,7 +446,7 @@ GTP_DEBUG("ID:%d, X:%d, Y:%d, W:%d", id, x, y, w);
 	
 	else if(strncmp(g_selected_utmodel, "d521", strlen("d521")) == 0) {
 		
-		printk("d521 -----------------------GTP(%d,%d)\n",y,1280-x);
+	//	printk("d521 -----------------------GTP(%d,%d)\n",y,1280-x);
 		
     	//input_report_abs(ts->input_dev, ABS_MT_POSITION_X, (x));
     	//input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, (y));
