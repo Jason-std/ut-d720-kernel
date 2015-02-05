@@ -181,6 +181,15 @@ static void check_sensors_model(void)
 		MMA7660_DIR_Z = 1;
 	}
 	
+	else if(strncmp(g_selected_utmodel, "d521", strlen("d521")) == 0)
+	{
+		printk("g_selected_utmodel d521 +_+_+\n");
+		s_ut_model=521;
+		MMA7660_DIR_X = -1;
+		MMA7660_DIR_Y = 1;
+		MMA7660_DIR_Z = -1;
+	}
+	
 }
 
 static void mma7660_read_thread(int run);
@@ -634,6 +643,12 @@ static int mma8452_poll_thread(void * data)
 				s_z = z = mma7660_i2c_read(5)/2;
 			}
 			else if(s_ut_model==721){
+				s_x = x = mma7660_i2c_read(1) / 2;
+				s_y = y = mma7660_i2c_read(3)/2;
+				s_z = z = mma7660_i2c_read(5)/2;
+			}
+			
+			else if(s_ut_model==521){
 				s_x = x = mma7660_i2c_read(1) / 2;
 				s_y = y = mma7660_i2c_read(3)/2;
 				s_z = z = mma7660_i2c_read(5)/2;
