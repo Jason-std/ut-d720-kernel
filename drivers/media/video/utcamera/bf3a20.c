@@ -610,7 +610,7 @@ static int bf3a20_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	struct bf3a20_userset userset = state->userset;
 	int err = 0;
 	
-	dbg_int(ctrl->id);
+	//dbg_int(ctrl->id);
 
 	switch (ctrl->id)
 	{
@@ -754,7 +754,7 @@ static int bf3a20_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
 	int err = 0;
 	int value = ctrl->value;
 	
-	dbg_int(ctrl->id);
+	//dbg_int(ctrl->id);
 
 	printk("enter %s,id=%ul\n",__func__,ctrl->id);
 

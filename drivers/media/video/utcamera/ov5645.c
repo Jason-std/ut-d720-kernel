@@ -43,6 +43,9 @@
 #define dbg_int(i)  printk("*** func:%s,i = %d\n",__FUNCTION__,i)
 #define dbg_str(i)  printk("*** func:%s,i = %s\n",__FUNCTION__,i)
 
+extern char g_device_gauge[];
+
+
 static struct i2c_client * s_client = NULL;
 
 static int ov5645_init(struct v4l2_subdev *sd, u32 val);
@@ -127,64 +130,70 @@ struct ov5645_enum_framesize ov5645_capture_framesize_list[] = {
 static int ov5645_power( int enable)
 {	
 	int ret=0;
-/*	struct regulator *vdd28_cam_regulator = NULL;
-	struct regulator *vddaf_cam_regulator = NULL;
-	printk("**1* fun: ov5645_sensor_power ,enable = %d\n",enable);
-	if (enable) {
-		gpio_direction_output(GPIO_CAMERA_POWER, 1);
+	if(strncmp(g_device_gauge, "cw2", strlen("cw2")) == 0)//D720 v04 pm ic is cw201x ,gae=cw2
+	{
+	    printk("D720 v04 pm ic is cw201x ,gae=cw2\n");
+		struct regulator *vdd28_cam_regulator = NULL;
+		struct regulator *vddaf_cam_regulator = NULL;
+		if (enable) {
+			gpio_direction_output(GPIO_CAMERA_POWER, 1);
 
-		vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
-		regulator_enable(vdd28_cam_regulator);
-		regulator_put(vdd28_cam_regulator);
+			vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
+			regulator_enable(vdd28_cam_regulator);
+			regulator_put(vdd28_cam_regulator);
 
-		vddaf_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
-		regulator_enable(vddaf_cam_regulator);
-		regulator_put(vddaf_cam_regulator);
+			vddaf_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
+			regulator_enable(vddaf_cam_regulator);
+			regulator_put(vddaf_cam_regulator);
 
-		
-		gpio_direction_output(GPIO_CAMERA_PD0, 0);
-		gpio_direction_output(GPIO_CAMERA_RESET, 1);
-		usleep_range(5000, 5000);  // must
-		gpio_direction_output(GPIO_CAMERA_PD0, 1);
-		usleep_range(2000, 3000);  // must
-		gpio_direction_output(GPIO_CAMERA_RESET, 0);
-		usleep_range(4500, 5000);  // must
-		gpio_direction_output(GPIO_CAMERA_RESET, 1);
-		usleep_range(1500, 1500);  // must
-	} else {
-		gpio_direction_output(GPIO_CAMERA_POWER, 0);
-		vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
-		regulator_disable(vdd28_cam_regulator);
-		regulator_put(vdd28_cam_regulator);
+			
+			gpio_direction_output(GPIO_CAMERA_PD0, 0);
+			gpio_direction_output(GPIO_CAMERA_RESET, 1);
+			usleep_range(5000, 5000);  // must
+			gpio_direction_output(GPIO_CAMERA_PD0, 1);
+			usleep_range(2000, 3000);  // must
+			gpio_direction_output(GPIO_CAMERA_RESET, 0);
+			usleep_range(4500, 5000);  // must
+			gpio_direction_output(GPIO_CAMERA_RESET, 1);
+			usleep_range(1500, 1500);  // must
+		} else {
+			gpio_direction_output(GPIO_CAMERA_POWER, 0);
+			vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
+			regulator_disable(vdd28_cam_regulator);
+			regulator_put(vdd28_cam_regulator);
 
-		vddaf_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
-		regulator_disable(vddaf_cam_regulator);
-		regulator_put(vddaf_cam_regulator);
-		gpio_direction_output(GPIO_CAMERA_PD0, 0);
+			vddaf_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
+			regulator_disable(vddaf_cam_regulator);
+			regulator_put(vddaf_cam_regulator);
+			gpio_direction_output(GPIO_CAMERA_PD0, 0);
+		}
 	}
-*/
+	
+	if(strncmp(g_device_gauge, "axp", strlen("axp")) == 0){//	D720 v02 pm ic is axp ,gae=axp
+		printk("D720 v02 pm ic is axp ,gae=axp\n");
 
-	if(enable){
-		write_power_item_value(POWER_BCAM_18V,1);
-		write_power_item_value(POWER_BCAM_28V,1);
-		write_power_item_value(POWER_CAM_AF,1);
-
-		write_power_item_value(POWER_BCAM_PD,0);
-		write_power_item_value(POWER_BCAM_RST,1);
-		msleep(5);
-		write_power_item_value(POWER_BCAM_PD,1);
-		msleep(2);
-		write_power_item_value(POWER_BCAM_RST,0);
-		msleep(5);
-		write_power_item_value(POWER_BCAM_RST,1);
-		msleep(2);
-	}else{
-		write_power_item_value(POWER_BCAM_18V,0);
-		write_power_item_value(POWER_BCAM_28V,0);
-		write_power_item_value(POWER_CAM_AF,0);
-		write_power_item_value(POWER_BCAM_PD,0);
+		if(enable){
+			write_power_item_value(POWER_BCAM_18V,1);
+			write_power_item_value(POWER_BCAM_28V,1);
+			write_power_item_value(POWER_CAM_AF,1);
+			write_power_item_value(POWER_BCAM_PD,0);
+			write_power_item_value(POWER_BCAM_RST,1);
+			msleep(5);
+			write_power_item_value(POWER_BCAM_PD,1);
+			msleep(2);
+			write_power_item_value(POWER_BCAM_RST,0);
+			msleep(5);
+			write_power_item_value(POWER_BCAM_RST,1);
+			msleep(2);
+		}else{
+			write_power_item_value(POWER_BCAM_18V,0);
+			write_power_item_value(POWER_BCAM_28V,0);
+			write_power_item_value(POWER_CAM_AF,0);
+			write_power_item_value(POWER_BCAM_PD,0);
+		}
 	}
 	return ret;
+	
 }
 
 
