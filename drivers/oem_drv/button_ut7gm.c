@@ -36,14 +36,14 @@
 extern char g_selected_utmodel[];
 static struct timer_list timer;
 static struct input_dev * input;
-static struct s3c_adc_client	*button_ut7gm_client = NULL;
-enum  {
-	BUTTON_END=0,
-	BUTTON_VOLUMEUP,
-	BUTTON_VOLUMEDOWN,
-	BUTTON_HOME,
-	BUTTONE_MAX
-};
+//enum  {
+//	BUTTON_END=0,
+//	BUTTON_VOLUMEUP,
+//	BUTTON_VOLUMEDOWN,
+//	BUTTON_KPEQUAL,
+//	BUTTON_HOME,
+//	BUTTONE_MAX
+//};
 
 struct st_s3c_key{
 	int key_code;
@@ -51,34 +51,113 @@ struct st_s3c_key{
 	int key_history_flg;
 };
 
-#define MAX_BUTTON_CNT 		(BUTTONE_MAX)
-//static int power_buton_709 = 0;
+#define MAX_BUTTON_CNT 		10
 
-//KEY_END
+static int s_max_button_cnt = MAX_BUTTON_CNT;
+
+
 static int s3c_Keycode[MAX_BUTTON_CNT] = {
-	KEY_POWER,//KEY_END, 
-	KEY_VOLUMEUP, 
-	KEY_VOLUMEDOWN,
-	KEY_MENU,
+	KEY_RESERVED,
+	KEY_RESERVED,
+	KEY_RESERVED,
+	KEY_RESERVED,
+	KEY_RESERVED, // 5
+
+	KEY_RESERVED,
+	KEY_RESERVED,
+	KEY_RESERVED,
+	KEY_RESERVED,
+	KEY_RESERVED,		
 };
 
-
-//	gpio_direction_output(EXYNOS4_GPX1(2), 0);
 static struct st_s3c_key s3c_key_para[MAX_BUTTON_CNT] = {
-		//{ KEY_END, EXYNOS4_GPX0(1), 0},
+	{ KEY_RESERVED, 0, 0},
+	{ KEY_RESERVED, 0, 0},
+	{ KEY_RESERVED, 0, 0},
+	{ KEY_RESERVED, 0, 0},
+	{ KEY_RESERVED, 0, 0}, //5
+
+	{ KEY_RESERVED, 0, 0},
+	{ KEY_RESERVED, 0, 0},
+	{ KEY_RESERVED, 0, 0},
+	{ KEY_RESERVED, 0, 0},	
+	{ KEY_RESERVED, 0, 0}, //10
+};
+
+static const int s3c_Keycode_common[4] = {
+	KEY_POWER,
+	KEY_VOLUMEUP,
+	KEY_VOLUMEDOWN,
+	KEY_BACK,
+};
+
+static const struct st_s3c_key s3c_key_para_common[4] = {
 		{ KEY_POWER, EXYNOS4_GPX0(1), 0},
 		{ KEY_VOLUMEUP, EXYNOS4_GPX2(0), 0},
 		{ KEY_VOLUMEDOWN, EXYNOS4_GPX2(1), 0},	
 		{ KEY_MENU, EXYNOS4_GPX2(4), 0},	//S702
 };
 
-static void keep_wakeup_timeout(u8 sec);
+static const int s3c_Keycode_d816[2] = {
+	KEY_VOLUMEUP,
+	KEY_VOLUMEDOWN,
+//	KEY_BACK,
+};
+
+static const struct st_s3c_key s3c_key_para_d816[2] = {
+	{ KEY_VOLUMEUP, EXYNOS4_GPX2(1), 0},
+	{ KEY_VOLUMEDOWN, EXYNOS4_GPX2(0), 0},
+//	{ KEY_BACK, EXYNOS4_GPX2(4), 0},
+};
+
+static const int s3c_Keycode_d107[6] = {
+	KEY_END,
+	KEY_VOLUMEUP,
+	KEY_VOLUMEDOWN,
+	KEY_KPEQUAL,
+	KEY_HOME,
+	KEY_WWW,
+};
+
+static const struct st_s3c_key s3c_key_para_d107[6] = {
+	{ KEY_END, GPIO_ON_OUT, 0},
+	{ KEY_VOLUMEUP, GPIO_KP_VOLUMEUP, 0},
+	{ KEY_VOLUMEDOWN, GPIO_KP_VOLUMEDOWN, 0},
+	{ KEY_KPEQUAL, GPIO_KEY_SHUTTER, 0},
+	{ KEY_HOME, GPIO_KEY_HOME, 0},
+	{ KEY_WWW, GPIO_KEY_MENU, 0},
+};
+
+
+static const int s3c_Keycode_d1011[6] = {
+	KEY_POWER,
+	KEY_BACK,
+	KEY_VOLUMEUP,
+	KEY_VOLUMEDOWN,
+	KEY_KPEQUAL,
+	KEY_MENU,
+	KEY_HOME,
+	KEY_WWW,
+//	KEY_F3,
+};
+
+static const struct st_s3c_key s3c_key_para_d1011[6] = {
+	{ KEY_POWER, EXYNOS4_GPX0(1), 0},
+	{ KEY_BACK, EXYNOS4_GPX0(5), 0},
+	{ KEY_VOLUMEUP, GPIO_KP_VOLUMEUP, 0},
+	{ KEY_VOLUMEDOWN, GPIO_KP_VOLUMEDOWN, 0},
+	{ KEY_KPEQUAL, EXYNOS4_GPX0(6), 0},
+	{ KEY_MENU, EXYNOS4_GPX0(7), 0},
+	{ KEY_HOME, EXYNOS4_GPX1(0), 0},
+	{ KEY_WWW, EXYNOS4_GPX2(4), 0},
+//	{ KEY_F3, EXYNOS4_GPX2(6), 0},	
+};
 
 static void s3cbutton_timer_handler(unsigned long data)
 {
 	int flag;
 	int i;
-	for(i=0; i<MAX_BUTTON_CNT; i++) 
+	for(i=0; i<s_max_button_cnt; i++)
 	{
 		flag = gpio_get_value(s3c_key_para[i].key_pin);
 		if(flag != s3c_key_para[i].key_history_flg) 
@@ -104,9 +183,11 @@ static void s3cbutton_timer_handler(unsigned long data)
 }
 
 
-#define CONFIG_WAKELOCK_KEEP
+//#define CONFIG_WAKELOCK_KEEP
 
 #ifdef CONFIG_WAKELOCK_KEEP
+static void keep_wakeup_timeout(u8 sec);
+
 #include <linux/wakelock.h>
 
 static struct wake_lock s_ut_wake_lock2;
@@ -115,20 +196,20 @@ static int s3c_button_probe(struct platform_device *pdev)
 {
 	int i;
 
-	for(i=0; i<MAX_BUTTON_CNT; i++)  {
+	for(i=0; i<s_max_button_cnt; i++)  {
 		gpio_request(s3c_key_para[i].key_pin, "s3c-button");
 		s3c_gpio_setpull(s3c_key_para[i].key_pin, S3C_GPIO_PULL_UP);
 		gpio_direction_input(s3c_key_para[i].key_pin);
 	}
 
 	input = input_allocate_device();
-	if(!input) 
+	if(!input)
 		return -ENOMEM;
 
 	set_bit(EV_KEY, input->evbit);
 	//set_bit(EV_REP, input->evbit);	/* Repeat Key */
 
-	for(i = 0; i < MAX_BUTTON_CNT; i++)
+	for(i = 0; i < s_max_button_cnt; i++)
 		set_bit(s3c_key_para[i].key_code, input->keybit);
 
 	input->name = "s3c-button";
@@ -140,7 +221,7 @@ static int s3c_button_probe(struct platform_device *pdev)
 	input->id.version = 0x0100;
 
 	input->keycode = s3c_Keycode;
-	input->keycodemax  = ARRAY_SIZE(s3c_Keycode);
+	input->keycodemax  = s_max_button_cnt;
 	input->keycodesize = sizeof(s3c_Keycode[0]);
 
 	if(input_register_device(input) != 0)
@@ -161,7 +242,7 @@ static int s3c_button_probe(struct platform_device *pdev)
 
 
 #ifdef CONFIG_WAKELOCK_KEEP
-	wake_lock_init(&s_ut_wake_lock2,  WAKE_LOCK_SUSPEND, "hold wake buttom");	
+	wake_lock_init(&s_ut_wake_lock2,  WAKE_LOCK_SUSPEND, "hold wake buttom");
 #endif
 
 	printk(KERN_INFO"s3c button Initialized!!\n");
@@ -175,7 +256,7 @@ static int s3c_button_remove(struct platform_device *pdev)
 
 	input_unregister_device(input);
 	del_timer(&timer);
-	for(i=0; i<MAX_BUTTON_CNT; i++)  {
+	for(i=0; i<s_max_button_cnt; i++)  {
 		gpio_free(s3c_key_para[i].key_pin);
 	}
 
@@ -211,9 +292,9 @@ static void keep_wakeup_timeout(u8 sec)
 
 	wake_lock(&s_ut_wake_lock2);
 	wake_lock_timeout(&s_ut_wake_lock2,  sec * HZ);//jerry
-	
+
 	printk("%s(); -\n",__func__);
-	
+
 }
 #endif
 
@@ -232,6 +313,9 @@ static void keep_wakeup_timeout(u8 sec)
 	printk("%s(); -\n",__func__);
 }
 EXPORT_SYMBOL(s3c_send_wakeup_key);
+
+#if 0
+static struct s3c_adc_client	*button_ut7gm_client = NULL;
 
 static  int button_ut7gm_get_adc_data(int channel)
 {
@@ -282,9 +366,13 @@ static int button_ut7gm_readbat_mv(void)
 	printk("--button--adc_value:%d , mv_value:%d\n",adc_value,mv_value);
 	return mv_value;
 }
+#endif
+
+#ifdef CONFIG_WAKELOCK_KEEP
+
 static int s3c_check_battery_adc(void)
 {
-
+#if 0 //raymanfeng
 	int i = 0,count = 0,sum = 0,adc_value = 0, mv_value = 0;
 	int cycle_count = 0;
 	//int buffer[16] = {0};
@@ -297,37 +385,39 @@ static int s3c_check_battery_adc(void)
 	{
 		mv_value = button_ut7gm_readbat_mv();
 
-		mdelay(200);
+		msleep(200);
 	}
 
 	if(mv_value < 3530)
 		s3c_send_wakeup_key();
-	
-	printk("+++%s+++\n",__func__);	
+
+	printk("+++%s+++\n",__func__);
+#endif
 	return 0;
 }
-//andydeng added 20130109
+#endif
 static int s3c_button_resume(struct platform_device *pdev)
 {
 	u32 stat_val = 0;
 
 #ifdef CONFIG_WAKELOCK_KEEP
-	keep_wakeup_timeout(10);//jerry
+//	keep_wakeup_timeout(10);//jerry
 #endif
 	
 	mod_timer(&timer, jiffies + ms_to_jiffies(1800)); 
 	#if 1
 	 stat_val = (__raw_readl(S5P_WAKEUP_STAT));
+	printk("\nS5P_WAKEUP_STAT = %08x!!\n\n", stat_val);
+
+
 	if( stat_val & 1) {
 		if(s3c_pm_is_key_wakeup()) {
-		//	input_report_key(input, KEY_END, 1);
-			input_report_key(input, KEY_POWER, 1);
+			input_report_key(input, KEY_END, 1);
 			input_sync(input);
 			mdelay(1);
 			printk(KERN_DEBUG"s3c_button_resume by eint!!\n");
 			printk("\ns3c_button_resume by key!!\n\n");
-		//	input_report_key(input, KEY_END, 0);
-			input_report_key(input, KEY_POWER, 0);
+			input_report_key(input, KEY_END, 0);
 			input_sync(input);
 			//s3c_check_battery_adc();  //  add fot test when key INT
 		}
@@ -335,8 +425,8 @@ static int s3c_button_resume(struct platform_device *pdev)
 				printk("\ns3c_button_resume by eint but is not key!!\n\n");
 			#ifdef CONFIG_WAKELOCK_KEEP
 				keep_wakeup_timeout(6);//add by jerry
-			#endif	
-				s3c_check_battery_adc();
+			#endif
+//				s3c_check_battery_adc();
 			}
 	} else {
 #ifdef CONFIG_WAKELOCK_KEEP
@@ -372,14 +462,45 @@ static struct platform_device s3c_device_button = {
 	.id		= -1,
 };
 
+extern char g_selected_utmodel[32];
 static int __init s3c_button_init(void)
 {
+	if(strstr(g_selected_utmodel, "d107")) {
+		memcpy(s3c_Keycode, s3c_Keycode_d107, sizeof(s3c_Keycode_d107));
+		memcpy(s3c_key_para, s3c_key_para_d107, sizeof(s3c_key_para_d107));
+
+		s_max_button_cnt = ARRAY_SIZE(s3c_Keycode_d107);
+	}
+
+	else if(strstr(g_selected_utmodel, "d816")) {
+		memcpy(s3c_Keycode, s3c_Keycode_d816, sizeof(s3c_Keycode_d816));
+		memcpy(s3c_key_para, s3c_key_para_d816, sizeof(s3c_key_para_d816));
+
+		s_max_button_cnt = ARRAY_SIZE(s3c_Keycode_d816);
+	}
+
+	else if(strstr(g_selected_utmodel, "d1011")) {
+		memcpy(s3c_Keycode, s3c_Keycode_d1011, sizeof(s3c_Keycode_d1011));
+		memcpy(s3c_key_para, s3c_key_para_d1011, sizeof(s3c_key_para_d1011));
+
+		s_max_button_cnt = ARRAY_SIZE(s3c_Keycode_d1011);
+	}
+
+	else {
+		memcpy(s3c_Keycode, s3c_Keycode_common, sizeof(s3c_Keycode_common));
+		memcpy(s3c_key_para, s3c_key_para_common, sizeof(s3c_key_para_common));
+
+		s_max_button_cnt = ARRAY_SIZE(s3c_Keycode_common);
+	}
+	printk("%s(); + s_max_button_cnt = %d\n", __func__, s_max_button_cnt);
 	platform_device_register(&s3c_device_button);
-	
+#if 0 //raymanfeng
 	button_ut7gm_client = s3c_adc_register(&s3c_device_button, NULL, NULL, 0);
 	if (IS_ERR(button_ut7gm_client)) {
 		printk("ERROR register button_ut7gm_client!");
 	}
+#endif
+
 	return platform_driver_register(&s3c_button_device_driver);
 }
 
