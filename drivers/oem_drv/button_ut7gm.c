@@ -36,6 +36,7 @@
 extern char g_selected_utmodel[];
 static struct timer_list timer;
 static struct input_dev * input;
+static struct s3c_adc_client	*button_ut7gm_client = NULL;
 //enum  {
 //	BUTTON_END=0,
 //	BUTTON_VOLUMEUP,
@@ -185,7 +186,7 @@ static void s3cbutton_timer_handler(unsigned long data)
 }
 
 
-//#define CONFIG_WAKELOCK_KEEP
+#define CONFIG_WAKELOCK_KEEP
 
 #ifdef CONFIG_WAKELOCK_KEEP
 static void keep_wakeup_timeout(u8 sec);
@@ -316,9 +317,6 @@ static void keep_wakeup_timeout(u8 sec)
 }
 EXPORT_SYMBOL(s3c_send_wakeup_key);
 
-#if 0
-static struct s3c_adc_client	*button_ut7gm_client = NULL;
-
 static  int button_ut7gm_get_adc_data(int channel)
 {
 	int adc_value = 0;
@@ -368,13 +366,9 @@ static int button_ut7gm_readbat_mv(void)
 	printk("--button--adc_value:%d , mv_value:%d\n",adc_value,mv_value);
 	return mv_value;
 }
-#endif
-
-#ifdef CONFIG_WAKELOCK_KEEP
-
 static int s3c_check_battery_adc(void)
 {
-#if 0 //raymanfeng
+
 	int i = 0,count = 0,sum = 0,adc_value = 0, mv_value = 0;
 	int cycle_count = 0;
 	//int buffer[16] = {0};
@@ -387,23 +381,22 @@ static int s3c_check_battery_adc(void)
 	{
 		mv_value = button_ut7gm_readbat_mv();
 
-		msleep(200);
+		mdelay(200);
 	}
 
 	if(mv_value < 3530)
 		s3c_send_wakeup_key();
-
-	printk("+++%s+++\n",__func__);
-#endif
+	
+	printk("+++%s+++\n",__func__);	
 	return 0;
 }
-#endif
+//andydeng added 20130109
 static int s3c_button_resume(struct platform_device *pdev)
 {
 	u32 stat_val = 0;
 
 #ifdef CONFIG_WAKELOCK_KEEP
-//	keep_wakeup_timeout(10);//jerry
+	keep_wakeup_timeout(10);//jerry
 #endif
 	
 	mod_timer(&timer, jiffies + ms_to_jiffies(1800)); 
@@ -414,12 +407,14 @@ static int s3c_button_resume(struct platform_device *pdev)
 
 	if( stat_val & 1) {
 		if(s3c_pm_is_key_wakeup()) {
-			input_report_key(input, KEY_END, 1);
+		//	input_report_key(input, KEY_END, 1);
+			input_report_key(input, KEY_POWER, 1);
 			input_sync(input);
 			mdelay(1);
 			printk(KERN_DEBUG"s3c_button_resume by eint!!\n");
 			printk("\ns3c_button_resume by key!!\n\n");
-			input_report_key(input, KEY_END, 0);
+		//	input_report_key(input, KEY_END, 0);
+			input_report_key(input, KEY_POWER, 0);
 			input_sync(input);
 			//s3c_check_battery_adc();  //  add fot test when key INT
 		}
@@ -427,8 +422,8 @@ static int s3c_button_resume(struct platform_device *pdev)
 				printk("\ns3c_button_resume by eint but is not key!!\n\n");
 			#ifdef CONFIG_WAKELOCK_KEEP
 				keep_wakeup_timeout(6);//add by jerry
-			#endif
-//				s3c_check_battery_adc();
+			#endif	
+				s3c_check_battery_adc();
 			}
 	} else {
 #ifdef CONFIG_WAKELOCK_KEEP
@@ -496,13 +491,11 @@ static int __init s3c_button_init(void)
 	}
 	printk("%s(); + s_max_button_cnt = %d\n", __func__, s_max_button_cnt);
 	platform_device_register(&s3c_device_button);
-#if 0 //raymanfeng
+	
 	button_ut7gm_client = s3c_adc_register(&s3c_device_button, NULL, NULL, 0);
 	if (IS_ERR(button_ut7gm_client)) {
 		printk("ERROR register button_ut7gm_client!");
 	}
-#endif
-
 	return platform_driver_register(&s3c_button_device_driver);
 }
 
