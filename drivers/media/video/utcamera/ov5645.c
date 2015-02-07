@@ -127,76 +127,135 @@ struct ov5645_enum_framesize ov5645_capture_framesize_list[] = {
 
 #define GPIO_CAMERA_FLASH_MODE EXYNOS4212_GPM2(1)
 
+static void d1011_gpio_cfg(void)//for d1011
+{
+	int err = 0;
+
+	gpio_free(EXYNOS4212_GPM3(0));
+	gpio_free(EXYNOS4_GPL0(0));
+	gpio_free(EXYNOS4212_GPJ1(4));
+	
+	err = gpio_request(EXYNOS4212_GPM3(0), "cam_power");
+	if (err){
+		printk( "#### failed to request EXYNOS4212_GPM3(0) ####\n");
+	}else{
+		s3c_gpio_cfgpin(EXYNOS4212_GPM3(0), S3C_GPIO_OUTPUT);
+		s3c_gpio_setpull(EXYNOS4212_GPM3(0), S3C_GPIO_PULL_NONE);
+	}
+	err = gpio_request(EXYNOS4_GPL0(0), "cam_pd");
+	if (err){
+		printk( "#### failed to request EXYNOS4_GPL0(0) ####\n");
+	}else{
+		s3c_gpio_cfgpin(EXYNOS4_GPL0(0), S3C_GPIO_OUTPUT);
+		s3c_gpio_setpull(EXYNOS4_GPL0(0), S3C_GPIO_PULL_NONE);
+	}
+	
+	err = gpio_request(EXYNOS4212_GPJ1(4), "cam_rst");
+	if (err){
+		printk( "#### failed to request EXYNOS4212_GPJ1(4) ####\n");
+	}else{
+		s3c_gpio_cfgpin(EXYNOS4212_GPJ1(4), S3C_GPIO_OUTPUT);
+		s3c_gpio_setpull(EXYNOS4212_GPJ1(4), S3C_GPIO_PULL_NONE);
+	}
+	
+
+}
+
 
 static int ov5645_power(struct v4l2_subdev *sd, int enable)
-{
+{	
 	int ret=0;
-
-	if( strstr(g_selected_utmodel, "d720") && strncmp(g_device_gauge, "cw2", strlen("cw2")) == 0)//D720 v04 pm ic is cw201x ,gae=cw2
-	{
-	    printk("D720 v04 pm ic is cw201x ,gae=cw2\n");
-		struct regulator *vdd28_cam_regulator = NULL;
-		struct regulator *vddaf_cam_regulator = NULL;
-		if (enable) {
-			gpio_direction_output(GPIO_CAMERA_POWER, 1);
-
-			vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
-			regulator_enable(vdd28_cam_regulator);
-			regulator_put(vdd28_cam_regulator);
-
-			vddaf_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
-			regulator_enable(vddaf_cam_regulator);
-			regulator_put(vddaf_cam_regulator);
-
-			
-			gpio_direction_output(GPIO_CAMERA_PD0, 0);
-			gpio_direction_output(GPIO_CAMERA_RESET, 1);
-			usleep_range(5000, 5000);  // must
-			gpio_direction_output(GPIO_CAMERA_PD0, 1);
-			usleep_range(2000, 3000);  // must
-			gpio_direction_output(GPIO_CAMERA_RESET, 0);
-			usleep_range(4500, 5000);  // must
-			gpio_direction_output(GPIO_CAMERA_RESET, 1);
-			usleep_range(1500, 1500);  // must
-		} else {
-			gpio_direction_output(GPIO_CAMERA_POWER, 0);
-			vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
-			regulator_disable(vdd28_cam_regulator);
-			regulator_put(vdd28_cam_regulator);
-
-			vddaf_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
-			regulator_disable(vddaf_cam_regulator);
-			regulator_put(vddaf_cam_regulator);
-			gpio_direction_output(GPIO_CAMERA_PD0, 0);
-		}
-	}
+	int err = 0;
 	
-	if(strncmp(g_device_gauge, "axp", strlen("axp")) == 0){//	D720 v02 pm ic is axp ,gae=axp
-		printk("D720 v02 pm ic is axp ,gae=axp\n");
+	dbg_int(enable);
 
-		if(enable){
-			write_power_item_value(POWER_BCAM_18V,1);
-			write_power_item_value(POWER_BCAM_28V,1);
-			write_power_item_value(POWER_CAM_AF,1);
-			write_power_item_value(POWER_BCAM_PD,0);
-			write_power_item_value(POWER_BCAM_RST,1);
-			msleep(5);
-			write_power_item_value(POWER_BCAM_PD,1);
-			msleep(2);
-			write_power_item_value(POWER_BCAM_RST,0);
-			msleep(5);
-			write_power_item_value(POWER_BCAM_RST,1);
-			msleep(2);
-		}else{
-			write_power_item_value(POWER_BCAM_18V,0);
-			write_power_item_value(POWER_BCAM_28V,0);
-			write_power_item_value(POWER_CAM_AF,0);
-			write_power_item_value(POWER_BCAM_PD,0);
-		}
+if(strncmp(g_selected_utmodel, "d1011", strlen("d1011")) == 0){
+	 d1011_gpio_cfg();
+	 if(enable){
+		 gpio_direction_output(EXYNOS4212_GPM3(0),1);//cam_1.8/cam_2.8/cam_af
+		 
+		 gpio_direction_output(EXYNOS4_GPL0(0),0);//cam_pd
+		 gpio_direction_output(EXYNOS4212_GPJ1(4),1);//cam_rst
+		 msleep(5);
+		 gpio_direction_output(EXYNOS4_GPL0(0),1);//cam_pd
+		 msleep(2);
+		 gpio_direction_output(EXYNOS4212_GPJ1(4),0);//cam_rst
+		 msleep(5);
+		 gpio_direction_output(EXYNOS4212_GPJ1(4),1);//cam_rst
+		 msleep(2);
+ 
+	 }else{
+		 write_power_item_value(EXYNOS4212_GPM0(3),0);
+		 write_power_item_value(EXYNOS4_GPL0(0),0);
+		 write_power_item_value(EXYNOS4_GPL0(0),0);//cam_pd
+	 }
+		 
+ }
+else if((strncmp(g_selected_utmodel, "d720", strlen("d720")) == 0)&&(strncmp(g_device_gauge, "cw2", strlen("cw2")) == 0)){//D720 v04 pm ic is cw201x ,gae=cw2
+
+	printk("D720 v04 pm ic is cw201x ,gae=cw2\n");
+	struct regulator *vdd28_cam_regulator = NULL;
+	struct regulator *vddaf_cam_regulator = NULL;
+	if (enable) {
+		gpio_direction_output(GPIO_CAMERA_POWER, 1);
+
+		vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
+		regulator_enable(vdd28_cam_regulator);
+		regulator_put(vdd28_cam_regulator);
+
+		vddaf_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
+		regulator_enable(vddaf_cam_regulator);
+		regulator_put(vddaf_cam_regulator);
+
+		
+		gpio_direction_output(GPIO_CAMERA_PD0, 0);
+		gpio_direction_output(GPIO_CAMERA_RESET, 1);
+		usleep_range(5000, 5000);  // must
+		gpio_direction_output(GPIO_CAMERA_PD0, 1);
+		usleep_range(2000, 3000);  // must
+		gpio_direction_output(GPIO_CAMERA_RESET, 0);
+		usleep_range(4500, 5000);  // must
+		gpio_direction_output(GPIO_CAMERA_RESET, 1);
+		usleep_range(1500, 1500);  // must
+	} else {
+		gpio_direction_output(GPIO_CAMERA_POWER, 0);
+		vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
+		regulator_disable(vdd28_cam_regulator);
+		regulator_put(vdd28_cam_regulator);
+
+		vddaf_cam_regulator=regulator_get(NULL, "vdd_eldo3_18");
+		regulator_disable(vddaf_cam_regulator);
+		regulator_put(vddaf_cam_regulator);
+		gpio_direction_output(GPIO_CAMERA_PD0, 0);
 	}
-	return ret;
-	
 }
+else if((strncmp(g_selected_utmodel, "d720", strlen("d720")) == 0)&&(strncmp(g_device_gauge, "axp", strlen("axp")) == 0)){//	D720 v02 pm ic is axp ,gae=axp
+	printk("D720 v02 pm ic is axp ,gae=axp\n");
+
+	if(enable){
+		write_power_item_value(POWER_BCAM_18V,1);
+		write_power_item_value(POWER_BCAM_28V,1);
+		write_power_item_value(POWER_CAM_AF,1);
+		write_power_item_value(POWER_BCAM_PD,0);
+		write_power_item_value(POWER_BCAM_RST,1);
+		msleep(5);
+		write_power_item_value(POWER_BCAM_PD,1);
+		msleep(2);
+		write_power_item_value(POWER_BCAM_RST,0);
+		msleep(5);
+		write_power_item_value(POWER_BCAM_RST,1);
+		msleep(2);
+	}else{
+		write_power_item_value(POWER_BCAM_18V,0);
+		write_power_item_value(POWER_BCAM_28V,0);
+		write_power_item_value(POWER_CAM_AF,0);
+		write_power_item_value(POWER_BCAM_PD,0);
+	}
+}
+return ret;
+
+}
+
 
 
 static inline struct ov5645_state *to_state(struct v4l2_subdev *sd)
@@ -219,15 +278,15 @@ static int reg_read_16(struct i2c_client *client, u16 reg, u8 *val)
 
 	ret = i2c_master_send(client, data, 2);
 	if (ret < 2) {
-		dev_err(&client->dev, "%s: i2c read error, reg: %x\n",
-			__func__, reg);
+		dev_err(&client->dev, "%s: i2c read error, reg: %x,ret = %d\n",
+			__func__, reg,ret);
 		return ret < 0 ? ret : -EIO;
 	}
 
 	ret = i2c_master_recv(client, val, 1);
 	if (ret < 1) {
-		dev_err(&client->dev, "%s: i2c read error, reg: %x\n",
-				__func__, reg);
+		dev_err(&client->dev, "%s: i2c read error, reg: %x,ret= %d\n",
+				__func__, reg,ret);
 		return ret < 0 ? ret : -EIO;
 	}
 	return 0;
@@ -1326,7 +1385,7 @@ static int ov5645_init(struct v4l2_subdev *sd, u32 val)
 	state->check_previewdata = 0;
 	//printk("%s: camera initialization end\n", __func__);
 	if(v1==0x56&&v2==0x45)
-		printk("ov5645 camera\n");
+		printk("find ov5645 camera\n");
 	else{
 		printk("%s:error,not find 0v5645\n",__func__);
 		return -ENODEV;
@@ -1514,11 +1573,11 @@ static struct i2c_driver ov5645_i2c_driver =
 static int __init ov5645_mod_init(void)
 {
 	printk("%s\n",__func__);
-
-	if (strstr(g_selected_utmodel, "d1011") ) {  /* albert  TODO 1011 */
-		printk("%s(); [%s], no video sensor !\n", __func__, g_selected_utmodel);
-		return -1;
+	
+	if(strncmp(g_selected_utmodel, "d521", strlen("d521")) == 0){
+		return 0;
 	}
+
 	return i2c_add_driver(&ov5645_i2c_driver);
 }
 

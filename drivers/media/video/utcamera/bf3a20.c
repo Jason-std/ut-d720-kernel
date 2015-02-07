@@ -35,6 +35,8 @@
 
 static int output_format_index = 0;
 #define BF3A20_DRIVER_NAME	"BF3A20"
+extern char g_selected_utmodel[];
+
 
 /* Default resolution & pixelformat. plz ref bf3a20_platform.h */
 #define DEFAULT_FMT		V4L2_PIX_FMT_UYVY	/* YUV422 */
@@ -115,15 +117,95 @@ struct bf3a20_enum_framesize bf3a20_capture_framesize_list[] = {
 #define GPIO_CAMERA_RESET  EXYNOS4212_GPJ1(4)
 
 
+
+static void d1011_gpio_cfg(void)//for d1011
+{
+	int err = 0;
+
+	gpio_free(EXYNOS4212_GPM3(0));
+	gpio_free(EXYNOS4_GPL0(0));
+	gpio_free(EXYNOS4212_GPJ1(4));
+	
+	err = gpio_request(EXYNOS4212_GPM3(0), "cam_power");
+	if (err){
+		printk( "#### failed to request EXYNOS4212_GPM3(0) ####\n");
+	}else{
+		s3c_gpio_cfgpin(EXYNOS4212_GPM3(0), S3C_GPIO_OUTPUT);
+		s3c_gpio_setpull(EXYNOS4212_GPM3(0), S3C_GPIO_PULL_NONE);
+	}
+	err = gpio_request(EXYNOS4_GPL0(0), "cam_pd");
+	if (err){
+		printk( "#### failed to request EXYNOS4_GPL0(0) ####\n");
+	}else{
+		s3c_gpio_cfgpin(EXYNOS4_GPL0(0), S3C_GPIO_OUTPUT);
+		s3c_gpio_setpull(EXYNOS4_GPL0(0), S3C_GPIO_PULL_NONE);
+	}
+	
+	err = gpio_request(EXYNOS4212_GPJ1(4), "cam_rst");
+	if (err){
+		printk( "#### failed to request EXYNOS4212_GPJ1(4) ####\n");
+	}else{
+		s3c_gpio_cfgpin(EXYNOS4212_GPJ1(4), S3C_GPIO_OUTPUT);
+		s3c_gpio_setpull(EXYNOS4212_GPJ1(4), S3C_GPIO_PULL_NONE);
+	}
+	
+
+}
+
+
+
+
 struct regulator *vdd28_cam_regulator = NULL;
 struct regulator *vdd18_cam_regulator = NULL;
 struct regulator *vdd12_cam_regulator = NULL;
 
-
 static int bf3a20_power( int enable)
 {
 	int ret=0;
-	printk("**1* fun: bf3a20_sensor_power ,enable = %d\n",enable);
+	
+	if(strncmp(g_selected_utmodel, "d1011", strlen("d1011")) == 0){
+		 d1011_gpio_cfg();
+		 if(enable){
+			 gpio_direction_output(EXYNOS4212_GPM3(0),1);//cam_1.8/cam_2.8/cam_af
+			 gpio_direction_output(EXYNOS4_GPL0(0),0);//cam_pd
+			 gpio_direction_output(EXYNOS4212_GPJ1(4),1);//cam_rst
+			 msleep(5);
+			 gpio_direction_output(EXYNOS4_GPL0(0),1);//cam_pd
+			 msleep(2);
+			 gpio_direction_output(EXYNOS4212_GPJ1(4),0);//cam_rst
+			 msleep(5);
+			 gpio_direction_output(EXYNOS4212_GPJ1(4),1);//cam_rst
+			 msleep(2);
+	 
+	 }else{
+		 write_power_item_value(EXYNOS4212_GPM0(3),0);
+		 write_power_item_value(EXYNOS4_GPL0(0),0);
+		 write_power_item_value(EXYNOS4_GPL0(0),0);//cam_pd
+	 }
+		 
+ }
+else{
+		if(enable){
+			write_power_item_value(POWER_FCAM_18V,1);
+			write_power_item_value(POWER_FCAM_28V,1);
+
+			write_power_item_value(POWER_FCAM_PD,1);
+			write_power_item_value(POWER_FCAM_RST,1);
+			msleep(50);
+			write_power_item_value(POWER_FCAM_PD,0);
+			msleep(20);
+			write_power_item_value(POWER_FCAM_RST,0);
+			msleep(45);
+			write_power_item_value(POWER_FCAM_RST,1);
+			msleep(15);
+		}else{
+			write_power_item_value(POWER_FCAM_18V,0);
+			write_power_item_value(POWER_FCAM_28V,0);
+			write_power_item_value(POWER_FCAM_PD,1);
+		}
+	}
+	return ret;
+	
 /*	
 	if (enable) {
 		vdd28_cam_regulator=regulator_get(NULL, "dldo2_cam_avdd_2v8");
@@ -150,25 +232,6 @@ static int bf3a20_power( int enable)
 		gpio_direction_output(GPIO_CAMERA_PD0, 1);
 	}
 */
-	if(enable){
-		write_power_item_value(POWER_FCAM_18V,1);
-		write_power_item_value(POWER_FCAM_28V,1);
-
-		write_power_item_value(POWER_FCAM_PD,1);
-		write_power_item_value(POWER_FCAM_RST,1);
-		msleep(50);
-		write_power_item_value(POWER_FCAM_PD,0);
-		msleep(20);
-		write_power_item_value(POWER_FCAM_RST,0);
-		msleep(45);
-		write_power_item_value(POWER_FCAM_RST,1);
-		msleep(15);
-	}else{
-		write_power_item_value(POWER_FCAM_18V,0);
-		write_power_item_value(POWER_FCAM_28V,0);
-		write_power_item_value(POWER_FCAM_PD,1);
-	}
-	return ret;
 }
 
 
