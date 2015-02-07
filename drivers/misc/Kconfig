@@ -557,5 +557,6 @@ source "drivers/misc/lis3lv02d/Kconfig"
 source "drivers/misc/carma/Kconfig"
 source "drivers/misc/c2c/Kconfig"
 #source "drivers/misc/modem_if/Kconfig"
+source "drivers/misc/inv_mpu/Kconfig"
 
 endif # MISC_DEVICES

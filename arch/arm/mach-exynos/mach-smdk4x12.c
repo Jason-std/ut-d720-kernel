@@ -1682,6 +1682,58 @@ static struct spi_board_info spi2_board_info[] __initdata = {
 };
 #endif
 
+
+#ifdef CONFIG_INV_SENSORS
+// shengliang: @2012-07-23
+#include <linux/mpu.h>
+#endif
+
+
+#ifdef CONFIG_INV_SENSORS
+// shengliang: @2012-07-23
+
+static struct mpu_platform_data mpu3050_data = {
+	.int_config  = 0x10,
+#if 0// shengliang, it's for TC4 screen in HZSSCR
+#ifdef CONFIG_TF4_PORTRAIT_MODE
+	// shengliang, need to be calibrated, @2012-08-02
+	.orientation = {  0,  1,  0,
+			  1,  0,  0,
+			  0,  0, -1 },
+#else
+	// shengliang, has been calibrated, @2012-08-02
+	.orientation = {  0,  1,  0,
+			 -1,  0,  0,
+			  0,  0,  1 },
+#endif
+#endif
+	// yangmiansi, has been calibrated, @2013-10-12
+	.orientation = {  -1,  0,  0,
+			            0,  1,  0,
+			            0,  0, -1 },
+};
+
+/* accel */
+static struct ext_slave_platform_data inv_mpu_bma250_data = {
+	.bus         = EXT_SLAVE_BUS_SECONDARY,
+	// yangmiansi, has been calibrated, @2013-10-12
+	.orientation = { -1, 0,   0,
+			          0,  1,   0,
+			          0,   0,  -1 },
+};
+
+/* compass */
+static struct ext_slave_platform_data inv_mpu_hmc5883_data = {
+	.bus         = EXT_SLAVE_BUS_PRIMARY,
+	// yangmiansi, has been calibrated, @2013-10-12
+	.orientation = {  1,  0,  0,
+			          0,  1,  0,
+			          0,  0,  1 },
+};
+#endif
+
+
+
 #ifdef CONFIG_FB_S3C
 //#if defined(CONFIG_LCD_AMS369FG06)
 //static int lcd_power_on(struct lcd_device *ld, int enable)
@@ -2955,6 +3007,28 @@ static struct pn544_i2c_platform_data pn544_device = {
 #endif
 
 static struct i2c_board_info i2c_devs5[] __initdata = {
+
+	// {I2C_BOARD_INFO("mma7660",0x4C),}, // alter by yangmiansi @2013-09-28
+	// MPU3050 (Gyro)
+	{
+		I2C_BOARD_INFO(MPU_NAME, 0x68),
+		.platform_data 	= &mpu3050_data,
+		.irq		= IRQ_GYRO_INT/*IRQ_EINT(9)*/,
+	},
+	// BMA250 (Accel)
+	{
+		I2C_BOARD_INFO("bma250", (0x30>>1)),
+		.platform_data = &inv_mpu_bma250_data,
+	},	
+
+#ifdef CONFIG_MPU_SENSORS_MMC314X_ICS
+	// MMC314x (Mag)
+	{
+		I2C_BOARD_INFO("mmc341x", (0x60>>1)), // alter by yangmiansi @2013-09-28
+		.platform_data = &inv_mpu_hmc5883_data,
+	},
+#endif
+	
 	{
 		I2C_BOARD_INFO("mma7660", 0x4C),
 	},

@@ -54,3 +54,4 @@ obj-$(CONFIG_SENSORS_AK8975)	+= akm8975.o
 obj-$(CONFIG_SAMSUNG_C2C)	+= c2c/
 obj-$(CONFIG_USBHUB_USB3503)	+= usb3503.o
 #obj-$(CONFIG_SEC_MODEM)		+= modem_if/
+obj-$(CONFIG_INV_SENSORS)	+= inv_mpu/
