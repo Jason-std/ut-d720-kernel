@@ -129,7 +129,7 @@ static const struct st_s3c_key s3c_key_para_d107[6] = {
 };
 
 
-static const int s3c_Keycode_d1011[9] = {
+static const int s3c_Keycode_d1011[8] = {
 	KEY_POWER,
 	KEY_BACK,
 	KEY_VOLUMEUP,
@@ -139,10 +139,10 @@ static const int s3c_Keycode_d1011[9] = {
 	KEY_HOME,
 	KEY_MENU,	
 	KEY_WWW,
-	KEY_MAIL,
+//	KEY_MAIL,
 };
 
-static const struct st_s3c_key s3c_key_para_d1011[9] = {
+static const struct st_s3c_key s3c_key_para_d1011[8] = {
 	{ KEY_POWER, EXYNOS4_GPX0(1), 0},
 	{ KEY_BACK, EXYNOS4_GPX0(5), 0},
 	{ KEY_VOLUMEUP, GPIO_KP_VOLUMEUP, 0},
@@ -152,7 +152,7 @@ static const struct st_s3c_key s3c_key_para_d1011[9] = {
 	{ KEY_HOME, EXYNOS4_GPX0(7), 0},
 	{ KEY_MENU, EXYNOS4_GPX1(0), 0}, /*F1*/
 	{ KEY_WWW, EXYNOS4_GPX2(4), 0}, /*F2*/
-	{ KEY_MAIL, EXYNOS4_GPX2(6), 0},	/*F3*/
+//	{ KEY_MAIL, EXYNOS4_GPX2(6), 0},	/*F3*/
 };
 
 static void s3cbutton_timer_handler(unsigned long data)
