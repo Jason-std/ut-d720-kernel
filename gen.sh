@@ -57,7 +57,7 @@ case $1 in
 
     bdwg )
         echo "copy zImage to release tool $PAK_NAME  +!!"
-	cp ../img/zImage /home2/albertli/release42_exynos_linuxtool/${PAK_NAME}/ -f
+		scp ../img/zImage albertli@192.168.1.161:/home2/albertli/d7xx_release_exynos_linuxtool/${PAK_NAME}/
 
         echo "copy zImage to release tool $PAK_NAME  -!!"
         ;;

@@ -33,6 +33,7 @@
 #include <linux/videodev2_samsung.h>
 #include "urbetter/power_gpio.h"
 
+extern char g_selected_utmodel[];
 #define OV5645_DRIVER_NAME	"OV5645"
 
 /* Default resolution & pixelformat. plz ref ov5645_platform.h */
@@ -127,10 +128,11 @@ struct ov5645_enum_framesize ov5645_capture_framesize_list[] = {
 #define GPIO_CAMERA_FLASH_MODE EXYNOS4212_GPM2(1)
 
 
-static int ov5645_power( int enable)
-{	
+static int ov5645_power(struct v4l2_subdev *sd, int enable)
+{
 	int ret=0;
-	if(strncmp(g_device_gauge, "cw2", strlen("cw2")) == 0)//D720 v04 pm ic is cw201x ,gae=cw2
+
+	if( strstr(g_selected_utmodel, "d720") && strncmp(g_device_gauge, "cw2", strlen("cw2")) == 0)//D720 v04 pm ic is cw201x ,gae=cw2
 	{
 	    printk("D720 v04 pm ic is cw201x ,gae=cw2\n");
 		struct regulator *vdd28_cam_regulator = NULL;
@@ -1315,7 +1317,7 @@ static int ov5645_init(struct v4l2_subdev *sd, u32 val)
 	 state->focus_mode=-1;
 
 	
-	ov5645_power( 1);
+	ov5645_power(sd, 1);
 
 	reg_read_16(client, 0x300a, &v1);
 	//printk("enter %s,reg0x300a=0x%02x\n",__func__,v1);
@@ -1488,7 +1490,7 @@ static int ov5645_remove(struct i2c_client *client)
 	
 	v4l2_device_unregister_subdev(sd);
 	kfree(to_state(sd));
-	ov5645_power(0);
+	ov5645_power(sd, 0);
 	s_client = NULL;
 	return 0;
 }
@@ -1512,6 +1514,11 @@ static struct i2c_driver ov5645_i2c_driver =
 static int __init ov5645_mod_init(void)
 {
 	printk("%s\n",__func__);
+
+	if (strstr(g_selected_utmodel, "d1011") ) {  /* albert  TODO 1011 */
+		printk("%s(); [%s], no video sensor !\n", __func__, g_selected_utmodel);
+		return -1;
+	}
 	return i2c_add_driver(&ov5645_i2c_driver);
 }
 
