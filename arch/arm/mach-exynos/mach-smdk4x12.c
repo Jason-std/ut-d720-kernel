@@ -1727,8 +1727,8 @@ static struct ext_slave_platform_data inv_mpu_hmc5883_data = {
 	.bus         = EXT_SLAVE_BUS_PRIMARY,
 	// yangmiansi, has been calibrated, @2013-10-12
 	.orientation = {  1,  0,  0,
-			          0,  1,  0,
-			          0,  0,  1 },
+					          0,  -1,  0,
+					          0,  0,  -1 },
 };
 #endif
 

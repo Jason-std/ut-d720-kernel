@@ -36,7 +36,7 @@ extern void ut4x12_config_sleep_gpio_table(void);
 #define IRQ_WIFI_WUP			IRQ_EINT(12)
 #define IRQ_WIFI_INT			IRQ_EINT(12)
 
-#define IRQ_RESERVE_6				IRQ_EINT(13)
+#define IRQ_GYRO_INT				IRQ_EINT(13)
 #define IRQ_RESERVE_7				IRQ_EINT(14)
 #define IRQ_RESERVE_8				IRQ_EINT(15)
 #define IRQ_KP_VOLUMEUP			IRQ_EINT(16)
@@ -53,7 +53,7 @@ extern void ut4x12_config_sleep_gpio_table(void);
 #define IRQ_SENSOR_INT			IRQ_EINT(24)
 #define IRQ_SENSOR_INT2		IRQ_EINT(25)
 #define IRQ_SIM_PLUG				IRQ_EINT(26)
-#define IRQ_GYRO_INT			IRQ_EINT(27)
+//#define IRQ_GYRO_INT			IRQ_EINT(27)
 #define IRQ_RESERVE_12				IRQ_EINT(28)
 #define IRQ_SIM_DET				IRQ_EINT(29)
 #define IRQ_HDMI_CEC			IRQ_EINT(30)
