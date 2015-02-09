@@ -32,6 +32,9 @@
 #include "s5p-dsim.h"
 #include "s3cfb.h"
 
+char s_selected_lcd_name[32] = {'\0'};
+
+int colorgain_value = 0x10040100;
 
 //map SFR region only
 #define REGWATCH_PHY_BASE	 0x10000000
@@ -40,6 +43,9 @@
 
 extern unsigned int lcd_reg_write(unsigned int reg, unsigned int value);
 extern unsigned int lcd_reg_read(unsigned int reg);
+
+
+EXPORT_SYMBOL(s_selected_lcd_name);
 
 
 typedef struct 
@@ -570,10 +576,6 @@ para_1_data init_data[]={
 
 };
 
-#ifdef CONFIG_FB_S5P_MIPI_S500HD
-int colorgain_value = 0x10040100;
-char s_selected_lcd_name[32] = {'\0'};
-EXPORT_SYMBOL(s_selected_lcd_name);
 
 static int __init select_lcd_name(char *str)
 {
@@ -625,7 +627,6 @@ void write_colorgain_reg(void)
 
 __setup("lcdRGB=", set_colorgain_reg);
 
-#endif
 
 static struct mipi_ddi_platform_data *ddi_pd;
 
@@ -727,11 +728,11 @@ void lcd_pannel_on(void)
 		if((init_data[i].add == 0xff &&  init_data[i].data == 0xff))
 			break;
 		s500hd_write_1(init_data[i].add, init_data[i].data);
-		udelay(20);
+		udelay(5);
 		i++;
 	}
 	printk(KERN_INFO"s3cfb_mipi_dev===%s,mid\n",__func__);
-	mdelay(120);
+	//mdelay(120);
 	s500hd_write_0(0x11);
 	mdelay(100); 
 	s500hd_write_0(0x29);	
@@ -861,14 +862,13 @@ static struct s3cfb_lcd s500hd_mipi_lcd = {
 	},
 };
 
-#ifdef CONFIG_FB_S5P_MIPI_S500HD
 /* name should be fixed as 's3cfb_set_lcd_info' */
 void s3cfb_set_lcd_info(struct s3cfb_global *ctrl)
 {
 	s500hd_mipi_lcd.init_ldi = NULL;
 	ctrl->lcd = &s500hd_mipi_lcd;
 }
-#endif
+
 module_init(s500hd_init);
 module_exit(s500hd_exit);
 
