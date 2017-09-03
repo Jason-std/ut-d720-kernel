@@ -24,7 +24,6 @@
 #endif
 
 #include <urbetter/check.h>
-
 //#define DEBUG 1
 #define DEBUG_SENSOR
 #ifdef DEBUG_SENSOR
@@ -706,6 +705,35 @@ static int __devinit mma7660_i2c_probe(struct i2c_client * client, const struct 
 	int i = -1;
 	s_i2c_client = client;
 
+
+#if 1
+	int* p_i = NULL;
+	char* p_c = NULL;
+
+	char a_char[10] = "What?";
+	int a_int[10]={11,22,33,344,25};	
+	double a_double[10]={1,2.01,3.02,3.03,21.04,2.05,120.2};
+
+	
+	printk(">>>> strlen(a_char)=%d, strlen(a_int)=%d, strlen(a_double)=%d <<<<\n",strlen(a_char),strlen(a_int),strlen(a_double));
+
+	printk(">>>> sizeof(p_i)=%d,        sizeof(p_c)=%d      <<<<\n",sizeof(p_i),sizeof(p_c));//4,4
+	printk(">>>> sizeof(a_char)=%d,     strlen(a_char)=%d   <<<<\n",sizeof(a_char),strlen(a_char));//10,5
+	//  1,4,8
+	printk(">>>> sizeof(a_char[10])=%d, sizeof(a_int[10])=%d, sizeof(a_double[10])=%d <<<<\n",sizeof(a_char[10]),sizeof(a_int[10]),sizeof(a_double[10]));
+	// 10, 40,80
+	printk(">>>> sizeof(a_char)=%d, sizeof(a_int)=%d, sizeof(a_double)=%d <<<<\n",sizeof(a_char),sizeof(a_int),sizeof(a_double));
+    // 
+	printk(">>>> strlen(a_char)=%d, strlen(a_int)=%d, strlen(a_double)=%d <<<<\n",strlen(a_char),strlen(a_int),strlen(a_double));
+
+	int len_a_char  = strlen(a_char);
+	int size_a_char = sizeof(a_char); 
+	int size_c_array = sizeof(a_char[10]); 
+	int size_int_array = sizeof(a_int[10]); 	
+	int size_double_array = sizeof(a_double[10]); 
+#endif
+	
+	
 	printk("mma7660_i2c_probe\n");
 	printk("mma7660: s_i2c_client->addr = 0x%x\n",s_i2c_client->addr);
 	
